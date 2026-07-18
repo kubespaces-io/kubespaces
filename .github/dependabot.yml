@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directories: ["/api", "/operator", "/spacectl"]
+    schedule: {interval: weekly}
+    groups:
+      k8s:
+        patterns: ["k8s.io/*", "sigs.k8s.io/*"]
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: {interval: weekly}
+    groups:
+      npm-minor:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directories: ["/api", "/operator", "/frontend"]
+    schedule: {interval: weekly}

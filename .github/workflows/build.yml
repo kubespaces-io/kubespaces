@@ -11,6 +11,7 @@ env:
 permissions:
   contents: read
   packages: write
+  id-token: write   # cosign keyless signing
 
 jobs:
   build:
@@ -41,7 +42,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
-      - uses: docker/build-push-action@v6
+      - id: push
+        uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.component }}
           platforms: linux/amd64,linux/arm64
@@ -50,3 +52,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,scope=${{ matrix.component }},mode=max
+
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (cosign keyless)
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes \
+            "${REGISTRY}/${{ github.repository_owner }}/${{ matrix.component }}@${DIGEST}"

@@ -1,0 +1,41 @@
+name: Bug report
+description: Something in KubeSpaces is broken
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security vulnerabilities do not belong here** — use
+        [private vulnerability reporting](https://github.com/kubespaces-io/kubespaces/security/advisories/new)
+        or security@kubespaces.io. See SECURITY.md.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [api, operator, frontend, spacectl, helm chart, docs, other]
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: KubeSpaces release, host Kubernetes, vCluster version
+      placeholder: |
+        KubeSpaces: v0.1.0
+        Host Kubernetes: v1.36 (GKE)
+        vCluster chart: 0.35.2
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: What happened, and how to reproduce it
+      description: Steps, expected vs actual. Include Tenant CR YAML if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: operator / api logs (kubectl -n kubespaces logs deploy/...)
+      render: text
