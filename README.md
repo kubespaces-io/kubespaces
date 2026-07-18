@@ -2,6 +2,8 @@
 
 > The open control plane for virtual Kubernetes tenants.
 
+[![CI](https://github.com/kubespaces-io/kubespaces/actions/workflows/ci.yml/badge.svg)](https://github.com/kubespaces-io/kubespaces/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 This is the KubeSpaces monorepo: backend API, Tenant operator, web frontend,
 and the umbrella Helm chart that deploys a complete installation.
 (Predecessor repos — kubespaces-io/login-api, ams0/frontend — are superseded by
