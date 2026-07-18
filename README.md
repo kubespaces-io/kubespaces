@@ -16,19 +16,38 @@ this codebase; spacectl will move here too.)
 | Frontend | `frontend/` | Next.js 15 · Auth.js (Keycloak). Self-service portal |
 | Chart | `charts/kubespaces/` | The product: one `helm install` for everything |
 
-## Layout
+## Repository layout
 
 ```
 .
-├── api/                  # Backend API (Go)
-├── operator/             # Tenant CRD + controller (Go, kubebuilder layout)
-├── frontend/             # Portal (Next.js)
+├── api/                       # Backend API — Go (chi, pgx, go-oidc)
+│   ├── cmd/api/               #   entrypoint
+│   └── internal/              #   auth, server (handlers), store (Postgres + migrations), k8s (Tenant CRs)
+├── operator/                  # Tenant operator — Go (controller-runtime, kubebuilder layout)
+│   ├── api/v1alpha1/          #   Tenant types (source of truth for the CRD)
+│   ├── config/                #   generated CRD + RBAC (make manifests)
+│   └── internal/              #   controller (reconciler), provisioner (vCluster via Helm SDK)
+├── frontend/                  # Self-service portal — Next.js 15 + Auth.js (Keycloak)
+│   └── src/                   #   app router, components, hooks, lib
+├── spacectl/                  # CLI — Go (cobra), OIDC device-flow login
+│   ├── cmd/spacectl/          #   entrypoint
+│   ├── internal/              #   cli, client, auth, config, kubeconfig
+│   └── DESIGN.md              #   command set & design decisions
 ├── charts/
-│   └── kubespaces/       # Umbrella Helm chart — THE product
-├── examples/             # values files: kind demo, GKE test, production
-├── docs/                 # contracts.md — the inter-component contract
-└── Makefile              # lint / template / kind dev loop
+│   └── kubespaces/            # Umbrella Helm chart — THE product: one install for everything
+├── examples/                  # values profiles: kind demo, GKE test, production
+├── docs/
+│   ├── contracts.md           # inter-component contract (read before touching any component)
+│   └── prerequisites.md       # what you need: demo tier vs production tier
+├── .github/workflows/         # ci (per-component), build (images → ghcr), release (spacectl), chart mirror
+├── .goreleaser.yaml           # spacectl release: binaries, checksums, Homebrew tap
+├── Makefile                   # helm lint / template / install, kind dev loop, CRD apply
+├── LICENSE                    # Apache 2.0
+└── NOTICE                     # vCluster credit
 ```
+
+Versioning: one line for the whole repo — a `vX.Y.Z` tag releases the spacectl
+binaries (goreleaser) and the `api`/`operator`/`frontend` images together.
 
 ## Quickstart
 
