@@ -1,0 +1,46 @@
+# spacectl releases. One version line for the whole monorepo: tagging vX.Y.Z
+# releases spacectl binaries here and container images via build.yml.
+version: 2
+project_name: spacectl
+
+builds:
+  - id: spacectl
+    dir: spacectl
+    main: ./cmd/spacectl
+    binary: spacectl
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .ShortCommit }}
+      - -X main.date={{ .CommitDate }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files: [LICENSE, NOTICE]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  filters:
+    exclude: ["^docs", "^chore", "^test"]
+
+brews:
+  - name: spacectl
+    repository:
+      owner: kubespaces-io
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://kubespaces.io
+    description: CLI for KubeSpaces — the open control plane for virtual Kubernetes tenants
+    license: Apache-2.0
+    install: |
+      bin.install "spacectl"
+    test: |
+      system "#{bin}/spacectl", "version"

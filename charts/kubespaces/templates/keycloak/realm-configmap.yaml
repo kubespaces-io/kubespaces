@@ -30,7 +30,10 @@ data:
           "protocol": "openid-connect",
           "standardFlowEnabled": true,
           "directAccessGrantsEnabled": false,
-          "attributes": { "pkce.code.challenge.method": "S256" },
+          "attributes": {
+            "pkce.code.challenge.method": "S256",
+            "oauth2.device.authorization.grant.enabled": "true"
+          },
           "redirectUris": ["*"],
           "webOrigins": ["+"]
         }
