@@ -1,0 +1,25 @@
+# Test profile for the kubespaces-one GKE cluster
+# (kubectl context: gke_infra-429913_europe-west1-b_kubespaces-one).
+# Mutable tags during development -> always pull.
+api:
+  image:
+    pullPolicy: Always
+frontend:
+  image:
+    pullPolicy: Always
+operator:
+  enabled: true
+  image:
+    pullPolicy: Always
+postgresql:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: standard-rwo
+
+keycloak:
+  enabled: true
+
+ingress:
+  enabled: false   # flip on once a static IP / DNS is set up for testing

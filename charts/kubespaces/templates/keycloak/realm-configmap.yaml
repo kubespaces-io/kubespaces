@@ -1,0 +1,39 @@
+{{- if .Values.keycloak.enabled }}
+# Minimal realm bootstrap: the "kubespaces" realm with a public OIDC client for
+# the frontend (PKCE) that the API validates tokens against. Extend as the
+# backend/frontend refactor firms up the auth contract (roles, groups, scopes).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-keycloak-realm
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+data:
+  kubespaces-realm.json: |
+    {
+      "realm": {{ .Values.keycloak.realm | quote }},
+      "enabled": true,
+      "registrationAllowed": false,
+      "roles": {
+        "realm": [
+          { "name": "kubespaces-admin", "description": "KubeSpaces administrator" },
+          { "name": "kubespaces-member", "description": "KubeSpaces member" }
+        ]
+      },
+      "clients": [
+        {
+          "clientId": {{ .Values.oidc.clientId | quote }},
+          "name": "KubeSpaces",
+          "enabled": true,
+          "publicClient": true,
+          "protocol": "openid-connect",
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "attributes": { "pkce.code.challenge.method": "S256" },
+          "redirectUris": ["*"],
+          "webOrigins": ["+"]
+        }
+      ]
+    }
+{{- end }}

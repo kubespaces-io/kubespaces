@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette — warm paper, near-black ink, one indigo accent.
+     Status colors are reserved for phase badges. */
+  --color-paper: #faf8f3;
+  --color-paper-raised: #ffffff;
+  --color-ink: #1a1712;
+  --color-ink-muted: #6e685c;
+  --color-ink-faint: #a39b8b;
+  --color-rule: #e6e1d5;
+
+  --color-accent: #3730a3;
+  --color-accent-hover: #2a2482;
+
+  --color-status-amber: #92610b;
+  --color-status-amber-bg: #f8efd9;
+  --color-status-green: #1a6e3e;
+  --color-status-green-bg: #e2f1e6;
+  --color-status-red: #a52222;
+  --color-status-red-bg: #fae7e4;
+  --color-status-gray: #6b6b66;
+  --color-status-gray-bg: #ecece7;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}

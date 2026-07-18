@@ -1,0 +1,30 @@
+# Production profile: external Postgres, external OIDC, real ingress + TLS.
+postgresql:
+  enabled: false
+externalDatabase:
+  host: postgres.example.internal
+  port: 5432
+  database: kubespaces
+  username: kubespaces
+  existingSecret: kubespaces-db   # key: password
+
+keycloak:
+  enabled: false
+oidc:
+  issuerUrl: https://auth.example.com/realms/kubespaces
+  clientId: kubespaces
+
+ingress:
+  enabled: true
+  className: nginx
+  host: kubespaces.example.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - secretName: kubespaces-tls
+      hosts: [kubespaces.example.com]
+
+api:
+  replicas: 2
+frontend:
+  replicas: 2

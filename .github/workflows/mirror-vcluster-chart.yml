@@ -1,0 +1,34 @@
+name: Mirror vCluster chart
+
+# D16: KubeSpaces installs vCluster from our own OCI mirror so upstream repo
+# changes can never break existing installs. Run this manually to mirror a new
+# version, then bump DefaultChartVersion in operator/internal/provisioner/helm.go.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "vCluster chart version to mirror (e.g. 0.35.2)"
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: azure/setup-helm@v4
+
+      - name: Login to ghcr
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Pull from upstream and push to mirror
+        run: |
+          helm pull vcluster --repo https://charts.loft.sh \
+            --version "${{ inputs.version }}"
+          helm push "vcluster-${{ inputs.version }}.tgz" \
+            oci://ghcr.io/${{ github.repository_owner }}/charts

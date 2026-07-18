@@ -1,0 +1,34 @@
+KubeSpaces {{ .Chart.AppVersion }} installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Components:
+  - API:       {{ include "kubespaces.fullname" . }}-api
+  - Frontend:  {{ include "kubespaces.fullname" . }}-frontend
+  {{- if .Values.postgresql.enabled }}
+  - Postgres:  {{ include "kubespaces.fullname" . }}-postgres (built-in, single instance)
+  {{- end }}
+  {{- if .Values.keycloak.enabled }}
+  - Keycloak:  {{ include "kubespaces.fullname" . }}-keycloak (built-in, dev mode)
+  {{- end }}
+
+{{ if .Values.ingress.enabled -}}
+Open the portal:
+
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/
+{{- else -}}
+No ingress configured. Access the portal via port-forward:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubespaces.fullname" . }}-frontend 8080:{{ .Values.frontend.service.port }}
+  open http://localhost:8080
+{{- end }}
+
+{{ if .Values.keycloak.enabled -}}
+Keycloak admin credentials:
+
+  user:     {{ .Values.keycloak.adminUser }}
+  password: kubectl -n {{ .Release.Namespace }} get secret {{ default (printf "%s-keycloak" (include "kubespaces.fullname" .)) .Values.keycloak.existingSecret }} -o jsonpath='{.data.admin-password}' | base64 -d
+{{- end }}
+
+Next steps: create your first tenant from the portal, or with spacectl:
+
+  brew install kubespaces-io/tap/spacectl
+  spacectl tenant create demo

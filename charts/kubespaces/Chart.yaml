@@ -1,0 +1,20 @@
+apiVersion: v2
+name: kubespaces
+description: >-
+  KubeSpaces — the open control plane for virtual Kubernetes tenants.
+  Self-service, isolated clusters-in-clusters with a portal, SSO and CLI.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.27.0-0"
+home: https://kubespaces.io
+sources:
+  - https://github.com/kubespaces-io/kubespaces
+keywords:
+  - kubernetes
+  - multi-tenancy
+  - vcluster
+  - virtual-clusters
+  - platform-engineering
+maintainers:
+  - name: Alessandro Vozza

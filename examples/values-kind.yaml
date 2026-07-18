@@ -1,0 +1,12 @@
+# All-in-one demo profile for a local kind cluster (also the default values,
+# spelled out for clarity). Everything self-contained, no ingress.
+postgresql:
+  enabled: true
+  persistence:
+    enabled: false   # ephemeral for throwaway demo clusters
+
+keycloak:
+  enabled: true
+
+ingress:
+  enabled: false     # use kubectl port-forward (see NOTES.txt)

@@ -1,0 +1,89 @@
+{{- if .Values.keycloak.enabled }}
+{{- if not .Values.keycloak.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-keycloak
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+type: Opaque
+data:
+  {{- if .Values.keycloak.adminPassword }}
+  admin-password: {{ .Values.keycloak.adminPassword | b64enc }}
+  {{- else }}
+  admin-password: {{ include "kubespaces.generatedPassword" (dict "ctx" . "secretName" (printf "%s-keycloak" (include "kubespaces.fullname" .)) "key" "admin-password") }}
+  {{- end }}
+---
+{{- end }}
+# Dev-mode Keycloak for the all-in-one profile: H2 storage, realm auto-import.
+# Production installs should set keycloak.enabled=false and bring their own
+# OIDC provider via oidc.issuerUrl / oidc.clientId.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-keycloak
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  serviceName: {{ include "kubespaces.fullname" . }}-keycloak
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "keycloak") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "keycloak") | nindent 8 }}
+      annotations:
+        checksum/realm: {{ include (print $.Template.BasePath "/keycloak/realm-configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          args: ["start-dev", "--import-realm", "--http-relative-path", "/auth"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: {{ .Values.keycloak.adminUser | quote }}
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-keycloak" (include "kubespaces.fullname" .)) .Values.keycloak.existingSecret }}
+                  key: admin-password
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.keycloak.resources | nindent 12 }}
+      volumes:
+        - name: realm-import
+          configMap:
+            name: {{ include "kubespaces.fullname" . }}-keycloak-realm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-keycloak
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  selector:
+    {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "keycloak") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.keycloak.service.port }}
+      targetPort: http
+{{- end }}

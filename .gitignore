@@ -1,0 +1,6 @@
+*.tgz
+.DS_Store
+charts/kubespaces/charts/
+bin/
+node_modules/
+.next/

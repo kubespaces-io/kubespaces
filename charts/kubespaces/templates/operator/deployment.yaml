@@ -1,0 +1,67 @@
+{{- if .Values.operator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-operator
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "operator") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "operator") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "kubespaces.fullname" . }}-operator
+      containers:
+        - name: operator
+          image: {{ include "kubespaces.image" (dict "ctx" . "image" .Values.operator.image) }}
+          imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+          args: ["--leader-elect"]
+          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion }}
+          env:
+            {{- with .Values.operator.vclusterChartRef }}
+            - name: VCLUSTER_CHART_REF
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.operator.vclusterChartVersion }}
+            - name: VCLUSTER_CHART_VERSION
+              value: {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-operator
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+---
+# The operator provisions vClusters (namespaces, quotas, workloads, RBAC) so it
+# carries broad rights for now. TODO: replace with the controller-gen role from
+# operator/config/rbac once the surface stabilizes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-operator
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubespaces.fullname" . }}-operator
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-api
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  selector:
+    {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "api") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.api.service.port }}
+      targetPort: http
+---
+# Pattern B: the API only writes Tenant CRs and reads tenant kubeconfig
+# Secrets — the operator carries the provisioning RBAC.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-api
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-api
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kubespaces.io"]
+    resources: ["tenants"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["kubespaces.io"]
+    resources: ["tenants/status"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]   # kubeconfig Secrets in tenant namespaces (by exact name)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-api
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kubespaces.fullname" . }}-api
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubespaces.fullname" . }}-api
+    namespace: {{ .Release.Namespace }}

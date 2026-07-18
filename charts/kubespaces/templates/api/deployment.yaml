@@ -1,0 +1,60 @@
+# NOTE: the env-var contract below is provisional until the backend refactor
+# lands. Keep ALL app configuration named here, in one place.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-api
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubespaces.selectorLabels" (dict "ctx" . "component" "api") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "kubespaces.fullname" . }}-api
+      containers:
+        - name: api
+          image: {{ include "kubespaces.image" (dict "ctx" . "image" .Values.api.image) }}
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.service.port }}
+          env:
+            - name: KUBESPACES_DB_HOST
+              value: {{ include "kubespaces.db.host" . | quote }}
+            - name: KUBESPACES_DB_PORT
+              value: {{ include "kubespaces.db.port" . | quote }}
+            - name: KUBESPACES_DB_NAME
+              value: {{ include "kubespaces.db.name" . | quote }}
+            - name: KUBESPACES_DB_USER
+              value: {{ include "kubespaces.db.user" . | quote }}
+            - name: KUBESPACES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kubespaces.db.secretName" . }}
+                  key: password
+            - name: KUBESPACES_OIDC_ISSUER_URL
+              value: {{ include "kubespaces.oidc.issuerUrl" . | quote }}
+            - name: KUBESPACES_OIDC_CLIENT_ID
+              value: {{ .Values.oidc.clientId | quote }}
+            {{- with .Values.api.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
