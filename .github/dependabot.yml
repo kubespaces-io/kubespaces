@@ -10,8 +10,17 @@ updates:
     directory: /frontend
     schedule: {interval: weekly}
     groups:
+      nextjs:
+        # next and its eslint config must move in lockstep
+        patterns: [next, eslint-config-next]
       npm-minor:
         update-types: [minor, patch]
+    ignore:
+      # eslint-config-next does not yet support these majors; revisit when it does
+      - dependency-name: eslint
+        versions: [">=10"]
+      - dependency-name: typescript
+        versions: [">=7"]
   - package-ecosystem: github-actions
     directory: /
     schedule: {interval: weekly}
