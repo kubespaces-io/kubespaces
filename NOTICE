@@ -1,0 +1,9 @@
+KubeSpaces
+Copyright 2024-2026 Alessandro Vozza and the KubeSpaces contributors
+
+Licensed under the Apache License, Version 2.0.
+
+KubeSpaces provisions virtual clusters using vCluster
+(https://github.com/loft-sh/vcluster), an open source project by Loft Labs,
+licensed under the Apache License, Version 2.0. vCluster charts are mirrored
+unmodified to ghcr.io/kubespaces-io/charts/vcluster.

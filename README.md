@@ -66,4 +66,4 @@ make install     # install/upgrade the chart into the current context
 
 ## License
 
-Apache 2.0 (LICENSE to be added before the repo goes public).
+Apache 2.0 — see [LICENSE](LICENSE). Built on [vCluster](https://github.com/loft-sh/vcluster) (Apache 2.0) — see [NOTICE](NOTICE).
