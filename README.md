@@ -2,6 +2,8 @@
 
 > The open control plane for virtual Kubernetes tenants.
 
+**[Roadmap](ROADMAP.md)** · [Project board](https://github.com/orgs/kubespaces-io/projects/3) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
 [![CI](https://github.com/kubespaces-io/kubespaces/actions/workflows/ci.yml/badge.svg)](https://github.com/kubespaces-io/kubespaces/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 This is the KubeSpaces monorepo: backend API, Tenant operator, web frontend,
