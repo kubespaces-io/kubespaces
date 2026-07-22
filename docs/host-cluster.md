@@ -213,7 +213,7 @@ All of the above is declarative and belongs in your platform GitOps
 repository (Flux/Argo) rather than in shell history — the pre-OSS KubeSpaces
 ran exactly this layout (gateway-api → implementation → gateways → DNS) as
 Flux Kustomizations. A reference layout ships in
-[`examples/host/`](../examples/host/); reconcile that directory and the host
+[`examples/host/`](https://github.com/kubespaces-io/kubespaces/tree/main/examples/host); reconcile that directory and the host
 is ready.
 
 ## Related

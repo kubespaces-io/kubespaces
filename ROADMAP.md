@@ -14,18 +14,18 @@ signed releases, and a pinned/mirrored vCluster supply chain.
 
 The theme: no more port-forwarding.
 
-- [ ] **Operator-managed tenant API exposure**: per-tenant `TLSRoute` (SNI
+- [x] **Operator-managed tenant API exposure**: per-tenant `TLSRoute` (SNI
       passthrough) + `ReferenceGrant` on a shared Gateway;
       `status.apiServerUrl` on the Tenant; served kubeconfigs point at the
-      public endpoint
-- [ ] **Tenant app exposure**: enable vCluster's native Gateway API sync
-      (`sync.toHost.gatewayApi`) by default; platform-enforced hostname
-      policy (`*.{tenant}.apps.{domain}`)
+      public endpoint (#15)
+- [x] **Tenant app exposure**: vCluster's native Gateway API sync with a
+      per-tenant listener + certificate on the shared apps Gateway —
+      structural hostname isolation (`*.{tenant}.apps.{domain}`) (#16)
 - [ ] Chart `networking.*` values + documented Envoy Gateway / cert-manager /
       external-dns setup (see docs/prerequisites.md tiers)
 - [ ] **E2E acceptance test in CI**: kind → install → tenant Ready →
       kubeconfig works, gating every release
-- [ ] Docs site at **docs.kubespaces.io** (from `docs/` in this repo)
+- [x] Docs site at **docs.kubespaces.io** (MkDocs Material from `docs/`, #19)
 - [x] CLI naming: resolved — the CLI is now `kubespaces` (was `spacectl`,
       which collided with Spacelift's CLI; see #20)
 - [ ] Helm chart published as OCI artifact with provenance

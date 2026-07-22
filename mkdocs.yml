@@ -1,0 +1,72 @@
+site_name: KubeSpaces
+site_url: https://docs.kubespaces.io/
+site_description: >-
+  The open control plane for virtual Kubernetes tenants — Tenant as a Service
+  on your own clusters.
+repo_url: https://github.com/kubespaces-io/kubespaces
+repo_name: kubespaces-io/kubespaces
+edit_uri: edit/main/docs/
+copyright: Apache 2.0 — built on vCluster
+
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: black
+    accent: indigo
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Prerequisites: prerequisites.md
+      - Quickstart: getting-started/quickstart.md
+      - Installation: getting-started/installation.md
+      - Your first tenant: getting-started/first-tenant.md
+  - Concepts:
+      - Architecture: concepts/architecture.md
+      - Tenant lifecycle: concepts/tenants.md
+      - Networking: concepts/networking.md
+  - Guides:
+      - Host cluster preparation: host-cluster.md
+      - Using the CLI: guides/cli.md
+      - Exposing apps: guides/expose-apps.md
+  - Reference:
+      - Tenant CRD: reference/tenant-crd.md
+      - Chart values: reference/chart-values.md
+      - Component contracts: contracts.md
+  - Project:
+      - Security: security.md
+      - Roadmap: https://github.com/kubespaces-io/kubespaces/blob/main/ROADMAP.md
+      - Contributing: https://github.com/kubespaces-io/kubespaces/blob/main/CONTRIBUTING.md
+      - Changelog: https://github.com/kubespaces-io/kubespaces/blob/main/CHANGELOG.md

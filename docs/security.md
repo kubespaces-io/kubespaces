@@ -1,7 +1,7 @@
 # Security architecture & roadmap
 
 How KubeSpaces approaches security today, and what's planned before 1.0.
-For reporting vulnerabilities see [SECURITY.md](../SECURITY.md).
+For reporting vulnerabilities see [SECURITY.md](https://github.com/kubespaces-io/kubespaces/blob/main/SECURITY.md).
 
 ## Trust model
 
