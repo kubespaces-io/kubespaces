@@ -29,6 +29,12 @@ type Request struct {
 	// HTTPRoutes created inside the virtual cluster materialize in the
 	// tenant host namespace.
 	SyncGatewayAPI bool
+	// AppsGatewayNamespace/AppsGatewayName identify the shared apps Gateway.
+	// It is projected into the virtual cluster (fromHost sync, same
+	// namespace/name) because the syncer only exports HTTPRoutes whose
+	// parentRef resolves to a Gateway it can see.
+	AppsGatewayNamespace string
+	AppsGatewayName      string
 }
 
 // Provisioner installs, removes and inspects vCluster releases.

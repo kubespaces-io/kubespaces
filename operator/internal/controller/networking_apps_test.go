@@ -94,6 +94,9 @@ func TestReconcileAppsAddsListenerAndCertificate(t *testing.T) {
 	if len(prov.installs) == 0 || !prov.installs[len(prov.installs)-1].SyncGatewayAPI {
 		t.Error("provision request should enable Gateway API sync")
 	}
+	if last := prov.installs[len(prov.installs)-1]; last.AppsGatewayNamespace != "kubespaces-system" || last.AppsGatewayName != "kubespaces-apps" {
+		t.Errorf("provision request apps gateway = %s/%s", last.AppsGatewayNamespace, last.AppsGatewayName)
+	}
 
 	// Act again: reconcile must be idempotent (no duplicate listener).
 	reconcile(t, r, tenant.Name, 1)

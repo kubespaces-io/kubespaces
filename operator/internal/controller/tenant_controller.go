@@ -138,7 +138,11 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// vCluster's native Gateway API toHost sync: HTTPRoutes created inside
 	// the virtual cluster land in the tenant host namespace, where the
 	// tenant's own apps listener (and only that listener) admits them.
-	provisionReq.SyncGatewayAPI = r.Apps.Enabled()
+	if r.Apps.Enabled() {
+		provisionReq.SyncGatewayAPI = true
+		provisionReq.AppsGatewayNamespace = r.Apps.GatewayNamespace
+		provisionReq.AppsGatewayName = r.Apps.GatewayName
+	}
 	if err := r.Provisioner.Install(ctx, provisionReq); err != nil {
 		return r.fail(ctx, tenant, "ProvisioningFailed", fmt.Errorf("installing vCluster: %w", err))
 	}

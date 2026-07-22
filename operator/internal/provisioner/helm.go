@@ -240,7 +240,7 @@ func buildValues(req Request) map[string]any {
 		// the virtual cluster land in the tenant host namespace. TLSRoute
 		// sync stays off deliberately — the shared API gateway must never
 		// admit tenant-authored passthrough routes.
-		base["sync"] = map[string]any{
+		sync := map[string]any{
 			"toHost": map[string]any{
 				"gatewayApi": map[string]any{
 					"enabled": true,
@@ -250,6 +250,24 @@ func buildValues(req Request) map[string]any {
 				},
 			},
 		}
+		if req.AppsGatewayName != "" && req.AppsGatewayNamespace != "" {
+			// Project the shared apps Gateway into the virtual cluster under
+			// the same namespace/name: the syncer authorizes an HTTPRoute's
+			// parentRef against Gateways visible inside the vCluster, and
+			// tenants get to reference the Gateway exactly as documented.
+			hostRef := req.AppsGatewayNamespace + "/" + req.AppsGatewayName
+			sync["fromHost"] = map[string]any{
+				"gateways": map[string]any{
+					"enabled": true,
+					"mappings": map[string]any{
+						"byName": map[string]any{
+							hostRef: hostRef,
+						},
+					},
+				},
+			}
+		}
+		base["sync"] = sync
 	}
 
 	if len(req.ValuesOverrides) == 0 {
