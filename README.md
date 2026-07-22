@@ -9,13 +9,14 @@
 This is the KubeSpaces monorepo: backend API, Tenant operator, web frontend,
 and the umbrella Helm chart that deploys a complete installation.
 (Predecessor repos — kubespaces-io/login-api, ams0/frontend — are superseded by
-this codebase; spacectl will move here too.)
+this codebase.)
 
 | Component | Where | What |
 |-----------|-------|------|
 | Backend API | `api/` | Go · chi · pgx · OIDC. Auth, tenant CRUD → Tenant CRs, kubeconfig |
 | Operator | `operator/` | Go · controller-runtime. Sole provisioner: Tenant CR → vCluster |
 | Frontend | `frontend/` | Next.js 15 · Auth.js (Keycloak). Self-service portal |
+| CLI | `cli/` | Go · cobra. `kubespaces` — device-flow login, tenant CRUD, kubeconfigs |
 | Chart | `charts/kubespaces/` | The product: one `helm install` for everything |
 
 ## Repository layout
@@ -31,8 +32,8 @@ this codebase; spacectl will move here too.)
 │   └── internal/              #   controller (reconciler), provisioner (vCluster via Helm SDK)
 ├── frontend/                  # Self-service portal — Next.js 15 + Auth.js (Keycloak)
 │   └── src/                   #   app router, components, hooks, lib
-├── spacectl/                  # CLI — Go (cobra), OIDC device-flow login
-│   ├── cmd/spacectl/          #   entrypoint
+├── cli/                       # kubespaces CLI — Go (cobra), OIDC device-flow login
+│   ├── cmd/kubespaces/        #   entrypoint
 │   ├── internal/              #   cli, client, auth, config, kubeconfig
 │   └── DESIGN.md              #   command set & design decisions
 ├── charts/
@@ -41,14 +42,14 @@ this codebase; spacectl will move here too.)
 ├── docs/
 │   ├── contracts.md           # inter-component contract (read before touching any component)
 │   └── prerequisites.md       # what you need: demo tier vs production tier
-├── .github/workflows/         # ci (per-component), build (images → ghcr), release (spacectl), chart mirror
-├── .goreleaser.yaml           # spacectl release: binaries, checksums, Homebrew tap
+├── .github/workflows/         # ci (per-component), build (images → ghcr), release (CLI), chart mirror
+├── .goreleaser.yaml           # CLI release: binaries, checksums, Homebrew tap
 ├── Makefile                   # helm lint / template / install, kind dev loop, CRD apply
 ├── LICENSE                    # Apache 2.0
 └── NOTICE                     # vCluster credit
 ```
 
-Versioning: one line for the whole repo — a `vX.Y.Z` tag releases the spacectl
+Versioning: one line for the whole repo — a `vX.Y.Z` tag releases the CLI
 binaries (goreleaser) and the `api`/`operator`/`frontend` images together.
 
 ## Quickstart

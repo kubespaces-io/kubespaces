@@ -12,7 +12,7 @@ body:
     id: component
     attributes:
       label: Component
-      options: [api, operator, frontend, spacectl, helm chart, docs, other]
+      options: [api, operator, frontend, cli, helm chart, docs, other]
     validations:
       required: true
   - type: textarea

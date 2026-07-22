@@ -4,14 +4,14 @@
 
 KubeSpaces follows [Semantic Versioning 2.0.0](https://semver.org) with one
 version line for the entire monorepo: a single `vX.Y.Z` tag releases the
-`api`/`operator`/`frontend` images, the spacectl binaries, and (soon) the
+`api`/`operator`/`frontend` images, the `kubespaces` CLI binaries, and (soon) the
 Helm chart at the same version.
 
 - **Pre-1.0 (`0.y.z`)**: minor bumps (`0.y`) may contain breaking changes —
   always called out in the changelog under **Breaking**. Patch bumps
   (`0.y.z`) never break.
 - **From 1.0**: strict semver. Breaking changes to the HTTP API, the
-  `Tenant` CRD schema, chart values, or spacectl flags require a major bump.
+  `Tenant` CRD schema, chart values, or CLI flags require a major bump.
 - **CRD versions are independent of release versions**: `kubespaces.io/v1alpha1`
   graduates through Kubernetes API conventions (v1alpha1 → v1beta1 → v1) with
   conversion support, regardless of the repo version.
@@ -41,7 +41,7 @@ commits by goreleaser, grouped Breaking / Features / Fixes / Other.
      push to `kubespaces-io/homebrew-tap`.
    - **build.yml** → multi-arch images to `ghcr.io/kubespaces-io/{api,operator,frontend}`
      tagged `X.Y.Z`, `X.Y`, `sha-*`, signed with **cosign** (keyless).
-5. Verify: `spacectl version` from a fresh
+5. Verify: `kubespaces version` from a fresh
    `curl -fsSL https://kubespaces.io/install.sh | sh`, and
    `cosign verify` per [docs/security.md](docs/security.md).
 

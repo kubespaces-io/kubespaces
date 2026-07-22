@@ -40,17 +40,17 @@ jobs:
           make manifests generate
           git diff --exit-code
 
-  spacectl:
+  cli:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: spacectl
+        working-directory: cli
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: spacectl/go.mod
-          cache-dependency-path: spacectl/go.sum
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
       - run: go build ./...
       - run: go vet ./...
       - run: go test ./... -count=1

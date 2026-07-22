@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: gomod
-    directories: ["/api", "/operator", "/spacectl"]
+    directories: ["/api", "/operator", "/cli"]
     schedule: {interval: weekly}
     groups:
       k8s:

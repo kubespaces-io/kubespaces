@@ -4,3 +4,4 @@ charts/kubespaces/charts/
 bin/
 node_modules/
 .next/
+cli/kubespaces

@@ -28,7 +28,7 @@ Keycloak admin credentials:
   password: kubectl -n {{ .Release.Namespace }} get secret {{ default (printf "%s-keycloak" (include "kubespaces.fullname" .)) .Values.keycloak.existingSecret }} -o jsonpath='{.data.admin-password}' | base64 -d
 {{- end }}
 
-Next steps: create your first tenant from the portal, or with spacectl:
+Next steps: create your first tenant from the portal, or with the kubespaces CLI:
 
-  brew install kubespaces-io/tap/spacectl
-  spacectl tenant create demo
+  brew install kubespaces-io/tap/kubespaces
+  kubespaces tenant create demo

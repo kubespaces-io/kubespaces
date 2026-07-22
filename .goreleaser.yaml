@@ -1,13 +1,13 @@
-# spacectl releases. One version line for the whole monorepo: tagging vX.Y.Z
-# releases spacectl binaries here and container images via build.yml.
+# CLI releases. One version line for the whole monorepo: tagging vX.Y.Z
+# releases the kubespaces CLI binaries here and container images via build.yml.
 version: 2
-project_name: spacectl
+project_name: kubespaces
 
 builds:
-  - id: spacectl
-    dir: spacectl
-    main: ./cmd/spacectl
-    binary: spacectl
+  - id: kubespaces
+    dir: cli
+    main: ./cmd/kubespaces
+    binary: kubespaces
     env: [CGO_ENABLED=0]
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
@@ -62,7 +62,7 @@ changelog:
     exclude: ["^docs", "^chore", "^test", "^ci"]
 
 brews:
-  - name: spacectl
+  - name: kubespaces
     repository:
       owner: kubespaces-io
       name: homebrew-tap
@@ -72,6 +72,6 @@ brews:
     description: CLI for KubeSpaces — the open control plane for virtual Kubernetes tenants
     license: Apache-2.0
     install: |
-      bin.install "spacectl"
+      bin.install "kubespaces"
     test: |
-      system "#{bin}/spacectl", "version"
+      system "#{bin}/kubespaces", "version"

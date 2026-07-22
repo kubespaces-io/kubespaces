@@ -18,7 +18,7 @@ This document is short on ceremony and explicit about expectations.
    other. The contract doc is the source of truth — changes that touch it
    affect every component and need an issue first.
 2. Each component builds independently:
-   - `api/`, `operator/`, `spacectl/`: `go build ./... && go test ./...`
+   - `api/`, `operator/`, `cli/`: `go build ./... && go test ./...`
    - `frontend/`: `npm ci && npm run lint && npm run build`
    - chart: `make lint template`
 3. A full local environment is one `make kind-up kind-install` away.

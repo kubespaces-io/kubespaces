@@ -26,7 +26,8 @@ The theme: no more port-forwarding.
 - [ ] **E2E acceptance test in CI**: kind → install → tenant Ready →
       kubeconfig works, gating every release
 - [ ] Docs site at **docs.kubespaces.io** (from `docs/` in this repo)
-- [ ] CLI naming: resolve the `spacectl` collision with Spacelift's CLI
+- [x] CLI naming: resolved — the CLI is now `kubespaces` (was `spacectl`,
+      which collided with Spacelift's CLI; see #20)
 - [ ] Helm chart published as OCI artifact with provenance
       (`oci://ghcr.io/kubespaces-io/charts/kubespaces`)
 
@@ -75,7 +76,7 @@ The theme: things financial institutions ask about in the first meeting.
 
 ## Non-goals
 
-- Replacing kubectl: spacectl hands you a kubeconfig and gets out of the way
+- Replacing kubectl: the CLI hands you a kubeconfig and gets out of the way
 - Web terminals in the portal (large attack surface, little value over a
   kubeconfig)
 - Becoming a general PaaS — KubeSpaces provisions *clusters*, not apps

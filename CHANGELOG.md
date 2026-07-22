@@ -7,6 +7,14 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- **Breaking**: the CLI is renamed from `spacectl` to `kubespaces` — binary,
+  Homebrew formula (`kubespaces-io/tap/kubespaces`), release archive names,
+  config directory (`~/.config/kubespaces`), and env vars
+  (`KUBESPACES_CLI_*`). The old name collided with Spacelift's spacectl
+  (#20). No migration: pre-1.0, and the rename landed before any
+  compatibility promise.
+
 ## [0.1.1] — 2026-07-22
 
 First release built and signed entirely by CI.

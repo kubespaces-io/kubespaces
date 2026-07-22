@@ -1,4 +1,4 @@
-name: Release spacectl
+name: Release CLI
 
 # Requires the TAP_GITHUB_TOKEN secret: a fine-grained PAT with contents:write
 # on kubespaces-io/homebrew-tap (GITHUB_TOKEN cannot push cross-repo).
@@ -20,8 +20,8 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
-          go-version-file: spacectl/go.mod
-          cache-dependency-path: spacectl/go.sum
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
       - uses: sigstore/cosign-installer@v3
       - uses: anchore/sbom-action/download-syft@v0
       - uses: goreleaser/goreleaser-action@v6

@@ -18,7 +18,7 @@ If you need to send sensitive material encrypted, say so in a first plain
 message and we will provide a key.
 
 A good report includes: affected component (api / operator / frontend /
-spacectl / Helm chart), version or commit, environment (host Kubernetes
+CLI / Helm chart), version or commit, environment (host Kubernetes
 version, vCluster version), impact assessment, and a proof of concept or
 reproduction steps. Crashes, PoCs and logs are welcome; live exploitation of
 other people's deployments is not.
@@ -41,7 +41,7 @@ Advisory with a CVE for confirmed vulnerabilities.
 
 **In scope**
 
-- This repository: `api`, `operator`, `frontend`, `spacectl`, the umbrella
+- This repository: `api`, `operator`, `frontend`, `cli`, the umbrella
   Helm chart, CI/release workflows
 - Container images published under `ghcr.io/kubespaces-io/*`
 - The vCluster chart **mirror** at `ghcr.io/kubespaces-io/charts/vcluster`

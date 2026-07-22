@@ -6,7 +6,7 @@ require touching every consumer — keep it small.
 ## Architecture (Pattern B, decided 2026-07-18)
 
 ```
-UI (Next.js) / spacectl ──HTTP+JWT──> backend API ──┐
+UI (Next.js) / kubespaces CLI ──HTTP+JWT──> backend API ──┐
                                                     ├─ persists to Postgres (UI metadata, audit)
                                                     └─ creates/deletes Tenant CRs
 GitOps / kubectl ────────────────────────────────────> Tenant CRs

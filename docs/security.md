@@ -26,14 +26,14 @@ For reporting vulnerabilities see [SECURITY.md](../SECURITY.md).
 | Auth | OIDC only; PKCE public client; no passwords or PATs in the platform; frontend keeps tokens server-side |
 | Secrets | Generated at install (stable across upgrades) or bring-your-own via `existingSecret`; never in values files or git |
 | Supply chain | vCluster chart pinned + mirrored to our registry (D16); deps resolved via go.sum / package-lock |
-| Repo hygiene | gitleaks-clean history; secret scanning + push protection; Dependabot; CodeQL on api/operator/spacectl/frontend |
+| Repo hygiene | gitleaks-clean history; secret scanning + push protection; Dependabot; CodeQL on api/operator/cli/frontend |
 | Releases | Built only by CI from tags; SBOMs (syft) + keyless signatures (cosign) on artifacts and images; checksums on every release |
 | Tenant limits | ResourceQuota + LimitRange stamped per tenant by the operator |
 
 ## Verifying releases
 
 ```bash
-# spacectl checksums signature (keyless, GitHub OIDC identity)
+# CLI checksums signature (keyless, GitHub OIDC identity)
 cosign verify-blob \
   --certificate-identity-regexp 'github.com/kubespaces-io/kubespaces' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
