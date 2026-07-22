@@ -8,6 +8,15 @@ All notable changes to KubeSpaces are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Tenant app exposure** (#16): with `operator.tenantApps.*` configured,
+  the operator adds a per-tenant HTTPS listener to the shared apps Gateway
+  (`*.{tenant}.apps.{domain}`, per-tenant cert-manager wildcard Certificate,
+  `allowedRoutes` locked to the tenant namespace) and enables vCluster's
+  native Gateway API HTTPRoute sync — tenants expose apps with a plain
+  HTTPRoute inside their virtual cluster. Isolation is structural (routes
+  only attach to the tenant's own listener); `status.appsDomain` reports the
+  wildcard. Hardening: the API gateway example now uses
+  `allowedRoutes: Same`.
 - **Tenant API exposure** (#15): when configured with a shared Gateway
   (`operator.tenantApi.*` chart values), the operator creates a per-tenant
   SNI-passthrough `TLSRoute` + `ReferenceGrant`, adds the public hostname to

@@ -1,0 +1,48 @@
+# Host-cluster preparation: the shared tenant apps Gateway (TLS terminate).
+# See docs/host-cluster.md. Requires cert-manager (the operator creates a
+# per-tenant wildcard Certificate referencing your ClusterIssuer).
+#
+# The operator manages one listener per tenant on this Gateway (named
+# t-<tenant>, hostname *.<tenant>.apps.<domain>, allowedRoutes locked to the
+# tenant's namespace). The http listener below is the static base — Gateway
+# API requires at least one listener, and it is useful for HTTP->HTTPS
+# redirects. If you manage this Gateway with GitOps, configure your tool to
+# ignore drift on spec.listeners (e.g. Flux: spec.ignore / Argo CD:
+# ignoreDifferences), or the reconciler will fight the operator.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kubespaces-apps
+  namespace: kubespaces-system
+spec:
+  gatewayClassName: envoy
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+# Evaluation-only ClusterIssuer: self-signed per-tenant certificates
+# (browsers warn; fine for smoke tests). For production use a DNS-01 issuer —
+# wildcard certificates require DNS-01:
+#
+#   apiVersion: cert-manager.io/v1
+#   kind: ClusterIssuer
+#   metadata: {name: letsencrypt-dns01}
+#   spec:
+#     acme:
+#       server: https://acme-v02.api.letsencrypt.org/directory
+#       email: you@example.com
+#       privateKeySecretRef: {name: letsencrypt-dns01-key}
+#       solvers:
+#         - dns01:
+#             cloudflare:
+#               apiTokenSecretRef: {name: cloudflare-api-token, key: token}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}

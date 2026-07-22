@@ -130,6 +130,12 @@ type TenantStatus struct {
 	// +optional
 	APIServerURL string `json:"apiServerUrl,omitempty"`
 
+	// AppsDomain is the wildcard hostname (*.{tenant}.apps.{domain}) under
+	// which the tenant's workloads are exposed, set when app exposure is
+	// configured.
+	// +optional
+	AppsDomain string `json:"appsDomain,omitempty"`
+
 	// Conditions represent the latest available observations of the tenant state.
 	// +optional
 	// +listType=map

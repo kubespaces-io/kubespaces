@@ -24,7 +24,9 @@ spec:
           args: ["--leader-elect"]
           {{- $ta := .Values.operator.tenantApi | default dict }}
           {{- $taGw := $ta.gateway | default dict }}
-          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion $ta.domain }}
+          {{- $tapps := .Values.operator.tenantApps | default dict }}
+          {{- $tappsGw := $tapps.gateway | default dict }}
+          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion $ta.domain $tapps.domain }}
           env:
             {{- with .Values.operator.vclusterChartRef }}
             - name: VCLUSTER_CHART_REF
@@ -52,6 +54,22 @@ spec:
             {{- end }}
             {{- with $ta.externalDnsTarget }}
             - name: KUBESPACES_EXTERNAL_DNS_TARGET
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $tapps.domain }}
+            - name: KUBESPACES_APPS_DOMAIN
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $tappsGw.name }}
+            - name: KUBESPACES_APPS_GATEWAY_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $tappsGw.namespace }}
+            - name: KUBESPACES_APPS_GATEWAY_NAMESPACE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $tapps.clusterIssuer }}
+            - name: KUBESPACES_APPS_CLUSTER_ISSUER
               value: {{ . | quote }}
             {{- end }}
           {{- end }}

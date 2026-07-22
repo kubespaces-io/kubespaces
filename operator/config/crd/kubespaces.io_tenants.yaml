@@ -111,6 +111,12 @@ spec:
                   APIServerURL is the public endpoint of the tenant's API server, set
                   when the operator exposes it through the platform Gateway.
                 type: string
+              appsDomain:
+                description: |-
+                  AppsDomain is the wildcard hostname (*.{tenant}.apps.{domain}) under
+                  which the tenant's workloads are exposed, set when app exposure is
+                  configured.
+                type: string
               conditions:
                 description: Conditions represent the latest available observations
                   of the tenant state.

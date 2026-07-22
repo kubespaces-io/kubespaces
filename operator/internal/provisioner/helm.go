@@ -235,6 +235,22 @@ func buildValues(req Request) map[string]any {
 			"server": req.PublicAPIURL,
 		}
 	}
+	if req.SyncGatewayAPI {
+		// Native Gateway API sync (vCluster >= 0.35): HTTPRoutes created in
+		// the virtual cluster land in the tenant host namespace. TLSRoute
+		// sync stays off deliberately — the shared API gateway must never
+		// admit tenant-authored passthrough routes.
+		base["sync"] = map[string]any{
+			"toHost": map[string]any{
+				"gatewayApi": map[string]any{
+					"enabled": true,
+					"httpRoutes": map[string]any{
+						"enabled": true,
+					},
+				},
+			},
+		}
+	}
 
 	if len(req.ValuesOverrides) == 0 {
 		return base

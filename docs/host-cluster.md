@@ -69,8 +69,9 @@ spec:
         mode: Passthrough
       allowedRoutes:
         namespaces:
-          from: All                 # operator-created TLSRoutes live in this namespace,
-                                    # backends in tenant namespaces (via ReferenceGrant)
+          from: Same                # operator-created TLSRoutes live in this
+                                    # namespace; Same (not All) means tenant
+                                    # namespaces can never attach routes here
 ```
 
 Wait for an address:
@@ -128,6 +129,78 @@ kubectl get secret vc-smoke -n kubespaces-tenant-smoke \
 kubectl --kubeconfig /tmp/smoke.kubeconfig get nodes   # over the public endpoint
 kubectl delete tenant smoke
 ```
+
+## Tenant app exposure (the apps Gateway)
+
+The second half of the networking story: workloads *inside* tenants exposed
+at `https://<name>.<tenant>.apps.<domain>`. Additional host prerequisites:
+
+1. **cert-manager** — the operator creates a per-tenant wildcard
+   `Certificate` (`*.<tenant>.apps.<domain>`); a wildcard cert can only be
+   issued via **DNS-01**, so production needs a DNS-01 `ClusterIssuer`
+   (evaluation can use a self-signed one):
+
+   ```bash
+   helm install cert-manager oci://quay.io/jetstack/charts/cert-manager \
+     -n cert-manager --create-namespace --set crds.enabled=true --wait
+   ```
+
+2. **The apps Gateway** — TLS-terminating, one static base listener; the
+   operator manages one listener per tenant on it:
+
+   ```bash
+   kubectl apply -f examples/host/gateway-apps.yaml   # Gateway + selfsigned issuer
+   ```
+
+3. **DNS** — one record covers everything: `*.apps.<domain>` → the apps
+   Gateway address (DNS wildcards match multiple labels, so it also covers
+   `web.tenant.apps.<domain>`).
+
+4. **Chart values**:
+
+   ```yaml
+   operator:
+     tenantApps:
+       domain: <domain>
+       gateway: {name: kubespaces-apps, namespace: kubespaces-system}
+       clusterIssuer: selfsigned          # or your DNS-01 issuer
+   ```
+
+Per tenant, the operator then: issues the wildcard Certificate, adds listener
+`t-<tenant>` (hostname `*.<tenant>.apps.<domain>`, TLS terminate,
+`allowedRoutes` restricted to that tenant's namespace), enables vCluster's
+native `sync.toHost.gatewayApi.httpRoutes`, and reports
+`status.appsDomain`. Tenant users expose an app by creating a plain
+`HTTPRoute` inside their virtual cluster:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: web}
+spec:
+  parentRefs:
+    - name: kubespaces-apps
+      namespace: kubespaces-system       # the shared apps Gateway on the host
+  hostnames: ["web.<tenant>.apps.<domain>"]
+  rules:
+    - backendRefs: [{name: web, port: 80}]
+```
+
+**Isolation is structural**: the synced route lands in the tenant's host
+namespace, and the only listener that admits routes from that namespace is
+the tenant's own — whose hostname is `*.<tenant>.apps.<domain>`. A route
+claiming another tenant's hostname matches no listener it is allowed to
+attach to, so hostname theft is impossible without any admission policy.
+TLSRoute sync stays disabled by design: tenant-authored passthrough routes
+must never reach the API gateway (which additionally only admits routes from
+its own namespace).
+
+**GitOps note**: the operator writes `spec.listeners` on this one Gateway.
+Configure your GitOps tool to ignore listener drift on it (Flux
+`spec.ignore`, Argo CD `ignoreDifferences`) — everything else on this page
+stays fully declarative. Gateway API caps a Gateway at 64 listeners; beyond
+~60 tenants, shard across a second apps Gateway (tracked upstream in #16
+follow-ups).
 
 ## GitOps
 

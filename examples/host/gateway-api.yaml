@@ -27,4 +27,8 @@ spec:
         mode: Passthrough
       allowedRoutes:
         namespaces:
-          from: All
+          # The operator creates tenant TLSRoutes in THIS namespace; keeping
+          # this at Same (not All) means no other namespace — including
+          # tenant namespaces with route sync enabled — can ever attach a
+          # route to the API gateway.
+          from: Same

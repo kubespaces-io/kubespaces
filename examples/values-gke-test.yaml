@@ -19,6 +19,15 @@ operator:
       name: kubespaces-api
       namespace: kubespaces-system
       sectionName: apipassthrough
+  # Apps exposure: *.{tenant}.apps.gke.kubespaces.io via the apps Gateway;
+  # self-signed issuer (evaluation) — DNS: *.apps.gke.kubespaces.io -> apps
+  # Gateway LB IP.
+  tenantApps:
+    domain: gke.kubespaces.io
+    gateway:
+      name: kubespaces-apps
+      namespace: kubespaces-system
+    clusterIssuer: selfsigned
 postgresql:
   enabled: true
   persistence:

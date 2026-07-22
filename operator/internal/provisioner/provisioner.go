@@ -25,6 +25,10 @@ type Request struct {
 	// kubeconfig Secret, so downloaded kubeconfigs point at the public
 	// endpoint instead of the in-cluster Service.
 	PublicAPIURL string
+	// SyncGatewayAPI enables vCluster's native Gateway API toHost sync so
+	// HTTPRoutes created inside the virtual cluster materialize in the
+	// tenant host namespace.
+	SyncGatewayAPI bool
 }
 
 // Provisioner installs, removes and inspects vCluster releases.

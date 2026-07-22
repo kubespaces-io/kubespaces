@@ -140,6 +140,18 @@ operator:
       namespace: ""         # e.g. kubespaces-system
       sectionName: ""       # optional TLS passthrough listener name
     externalDnsTarget: ""   # optional external-dns target override (on-prem IP)
+  # Tenant app exposure: the operator adds a per-tenant HTTPS listener
+  # (*.{tenant}.apps.<domain>, per-tenant cert-manager wildcard Certificate,
+  # allowedRoutes locked to the tenant namespace) to this Gateway and enables
+  # vCluster's native Gateway API HTTPRoute sync. Requires cert-manager and a
+  # ClusterIssuer (DNS-01 for real certs; selfsigned works for evaluation).
+  # All four fields must be set to enable.
+  tenantApps:
+    domain: ""              # e.g. kubespaces.example.com
+    gateway:
+      name: ""              # e.g. kubespaces-apps
+      namespace: ""         # e.g. kubespaces-system
+    clusterIssuer: ""       # e.g. letsencrypt-dns01 (cert-manager ClusterIssuer)
 
 # ---------------------------------------------------------------------------
 # Gateway API: expose the portal (and /api, /auth) as an HTTPRoute attached to

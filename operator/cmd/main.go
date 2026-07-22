@@ -13,6 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
@@ -29,7 +30,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kubespacesv1alpha1.AddToScheme(scheme))
-	// Gateway API types for tenant API exposure (TLSRoute, ReferenceGrant).
+	// Gateway API types for tenant exposure (TLSRoute, ReferenceGrant,
+	// Gateway listeners).
+	utilruntime.Must(gatewayv1.Install(scheme))
 	utilruntime.Must(gatewayv1alpha2.Install(scheme))
 	utilruntime.Must(gatewayv1beta1.Install(scheme))
 }
@@ -67,12 +70,21 @@ func main() {
 	} else {
 		setupLog.Info("tenant API exposure disabled (set KUBESPACES_GATEWAY_NAMESPACE, KUBESPACES_GATEWAY_NAME and KUBESPACES_API_DOMAIN to enable)")
 	}
+	apps := controller.AppsConfigFromEnv()
+	if apps.Enabled() {
+		setupLog.Info("tenant app exposure enabled",
+			"gateway", apps.GatewayNamespace+"/"+apps.GatewayName,
+			"domain", apps.Domain, "clusterIssuer", apps.ClusterIssuer)
+	} else {
+		setupLog.Info("tenant app exposure disabled (set KUBESPACES_APPS_GATEWAY_NAMESPACE, KUBESPACES_APPS_GATEWAY_NAME, KUBESPACES_APPS_DOMAIN and KUBESPACES_APPS_CLUSTER_ISSUER to enable)")
+	}
 
 	if err := (&controller.TenantReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Provisioner: provisioner.NewHelmProvisioner(mgr.GetConfig()),
 		Networking:  networking,
+		Apps:        apps,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Tenant")
 		os.Exit(1)

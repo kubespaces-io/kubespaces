@@ -46,6 +46,10 @@ type TenantReconciler struct {
 	// Networking configures public exposure of tenant API servers via a
 	// shared Gateway; zero value disables exposure.
 	Networking NetworkingConfig
+	// Apps configures public exposure of tenant workloads (per-tenant
+	// listener + certificate on a shared apps Gateway, vCluster Gateway API
+	// sync); zero value disables exposure.
+	Apps AppsConfig
 }
 
 // RBAC for the Tenant CR itself.
@@ -65,6 +69,8 @@ type TenantReconciler struct {
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings;clusterroles;clusterrolebindings,verbs=get;list;watch;create;update;patch;delete;bind;escalate
 // +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tlsroutes;referencegrants,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=gateways,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups=cert-manager.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;watch;create;update;patch;delete
 
@@ -112,6 +118,11 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return r.fail(ctx, tenant, "NetworkingFailed", err)
 		}
 	}
+	if r.Apps.Enabled() {
+		if err := r.ensureTenantApps(ctx, tenant); err != nil {
+			return r.fail(ctx, tenant, "AppsNetworkingFailed", err)
+		}
+	}
 
 	provisionReq, err := buildProvisionRequest(tenant, namespaceName)
 	if err != nil {
@@ -124,6 +135,10 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		provisionReq.PublicAPIHost = r.Networking.HostFor(tenant)
 		provisionReq.PublicAPIURL = r.Networking.URLFor(tenant)
 	}
+	// vCluster's native Gateway API toHost sync: HTTPRoutes created inside
+	// the virtual cluster land in the tenant host namespace, where the
+	// tenant's own apps listener (and only that listener) admits them.
+	provisionReq.SyncGatewayAPI = r.Apps.Enabled()
 	if err := r.Provisioner.Install(ctx, provisionReq); err != nil {
 		return r.fail(ctx, tenant, "ProvisioningFailed", fmt.Errorf("installing vCluster: %w", err))
 	}
@@ -153,6 +168,10 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	tenant.Status.APIServerURL = ""
 	if r.Networking.Enabled() {
 		tenant.Status.APIServerURL = r.Networking.URLFor(tenant)
+	}
+	tenant.Status.AppsDomain = ""
+	if r.Apps.Enabled() {
+		tenant.Status.AppsDomain = r.Apps.WildcardFor(tenant)
 	}
 	setReadyCondition(tenant, metav1.ConditionTrue, "Provisioned", "vCluster is ready")
 	if err := r.updateStatus(ctx, tenant); err != nil {
@@ -184,6 +203,11 @@ func (r *TenantReconciler) reconcileDelete(ctx context.Context, tenant *kubespac
 
 	if r.Networking.Enabled() {
 		if err := r.deleteTenantNetworking(ctx, tenant); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	if r.Apps.Enabled() {
+		if err := r.deleteTenantApps(ctx, tenant); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
