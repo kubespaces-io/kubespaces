@@ -169,9 +169,10 @@ at `https://<name>.<tenant>.apps.<domain>`. Additional host prerequisites:
 Per tenant, the operator then: issues the wildcard Certificate, adds listener
 `t-<tenant>` (hostname `*.<tenant>.apps.<domain>`, TLS terminate,
 `allowedRoutes` restricted to that tenant's namespace), enables vCluster's
-native `sync.toHost.gatewayApi.httpRoutes`, and reports
-`status.appsDomain`. Tenant users expose an app by creating a plain
-`HTTPRoute` inside their virtual cluster:
+native `sync.toHost.gatewayApi.httpRoutes`, projects the apps Gateway into
+the tenant's virtual `default` namespace, and reports `status.appsDomain`.
+Tenant users expose an app by creating a plain `HTTPRoute` in their
+`default` namespace, referencing the Gateway they can see right next to it:
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -179,18 +180,16 @@ kind: HTTPRoute
 metadata: {name: web}
 spec:
   parentRefs:
-    - name: kubespaces-apps
-      namespace: kubespaces-system       # the shared apps Gateway on the host
+    - name: kubespaces-apps              # projected into default by vCluster
   hostnames: ["web.<tenant>.apps.<domain>"]
   rules:
     - backendRefs: [{name: web, port: 80}]
 ```
 
-The virtual `default` namespace is pre-labeled for route sync. To expose
-apps from *other* namespaces inside the virtual cluster, label them the same
-way (`kubectl label ns <ns> kubespaces.io/tenant=<tenant>` — inside the
-vCluster; this only satisfies the syncer's pre-check, it grants nothing on
-the host).
+Routes must live in the virtual `default` namespace — vCluster projects the
+Gateway into exactly one namespace, and its route authorization requires the
+route to sit next to a Gateway it can see. On sync, vCluster translates the
+parentRef back to the real host Gateway.
 
 **Isolation is structural**: the synced route lands in the tenant's host
 namespace, and the only listener that admits routes from that namespace is

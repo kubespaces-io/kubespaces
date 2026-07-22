@@ -251,32 +251,23 @@ func buildValues(req Request) map[string]any {
 			},
 		}
 		if req.AppsGatewayName != "" && req.AppsGatewayNamespace != "" {
-			// Project the shared apps Gateway into the virtual cluster under
-			// the same namespace/name: the syncer authorizes an HTTPRoute's
+			// Project the shared apps Gateway into the tenant's virtual
+			// default namespace: the syncer authorizes an HTTPRoute's
 			// parentRef against Gateways visible inside the vCluster, and
-			// tenants get to reference the Gateway exactly as documented.
+			// projection normalizes allowedRoutes selectors to Same — so the
+			// route must share a namespace with the projected Gateway.
+			// Tenants therefore write routes in default with
+			// parentRefs: [{name: <gateway>}] and vCluster translates the
+			// ref back to the real host Gateway on sync. Envoy enforces the
+			// actual isolation boundary against host namespace labels.
 			hostRef := req.AppsGatewayNamespace + "/" + req.AppsGatewayName
 			sync["fromHost"] = map[string]any{
 				"gateways": map[string]any{
 					"enabled": true,
 					"mappings": map[string]any{
 						"byName": map[string]any{
-							hostRef: hostRef,
+							hostRef: "default/" + req.AppsGatewayName,
 						},
-					},
-				},
-			}
-			// The syncer evaluates the projected Gateway's allowedRoutes
-			// selector against *virtual* namespace labels, so label the
-			// default namespace inside the vCluster with the tenant label.
-			// (Envoy enforces the real boundary against host namespaces —
-			// virtual labels only satisfy the syncer's pre-check.)
-			base["experimental"] = map[string]any{
-				"deploy": map[string]any{
-					"vcluster": map[string]any{
-						"manifests": fmt.Sprintf(
-							"apiVersion: v1\nkind: Namespace\nmetadata:\n  name: default\n  labels:\n    kubespaces.io/tenant: %s\n",
-							req.ReleaseName),
 					},
 				},
 			}
