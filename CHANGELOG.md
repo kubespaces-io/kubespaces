@@ -7,12 +7,27 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-07-22
+
+First release built and signed entirely by CI.
+
 ### Added
 - Windows release artifacts (zip) for spacectl
 - SBOMs (syft) and cosign keyless signatures on release artifacts and images
 - SECURITY.md, security architecture doc, CodeQL, Dependabot, secret-scanning
   push protection
 - CONTRIBUTING.md (including the AI-assisted contribution policy), RELEASING.md
+- Public [roadmap](ROADMAP.md) and
+  [project board](https://github.com/orgs/kubespaces-io/projects/3)
+
+### Fixed
+- **Security**: bumped `golang.org/x/net` in the API and spacectl (DoS
+  advisory) and forced the transitive `postcss` above the vulnerable
+  version (XSS advisory)
+- Frontend lockfile regenerated against the public npm registry — the
+  previous lockfile resolved packages from a private feed, breaking
+  `npm ci` (and the container build) for everyone outside it; a
+  project-local `.npmrc` prevents recurrence
 
 ## [0.1.0] — 2026-07-18
 
@@ -36,5 +51,6 @@ First public release. 🎉
 - **vCluster supply chain**: chart pinned (0.35.2) and installed from the
   KubeSpaces OCI mirror `ghcr.io/kubespaces-io/charts/vcluster`
 
-[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.0
