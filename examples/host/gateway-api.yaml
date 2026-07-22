@@ -1,0 +1,30 @@
+# Host-cluster preparation: the shared tenant API Gateway (TLS passthrough).
+# See docs/host-cluster.md. Adjust the wildcard hostname to your domain.
+#
+# Requires a Gateway API implementation with TLSRoute support, e.g.:
+#   helm install eg oci://docker.io/envoyproxy/gateway-helm \
+#     -n envoy-gateway-system --create-namespace --wait
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kubespaces-api
+  namespace: kubespaces-system
+spec:
+  gatewayClassName: envoy
+  listeners:
+    - name: apipassthrough
+      hostname: "*.api.example.com"
+      port: 443
+      protocol: TLS
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: All

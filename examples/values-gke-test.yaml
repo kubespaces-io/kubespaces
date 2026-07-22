@@ -11,6 +11,14 @@ operator:
   enabled: true
   image:
     pullPolicy: Always
+  # Tenant API exposure through the Envoy Gateway on this cluster; DNS:
+  # *.api.gke.kubespaces.io -> the Gateway's LoadBalancer IP.
+  tenantApi:
+    domain: gke.kubespaces.io
+    gateway:
+      name: kubespaces-api
+      namespace: kubespaces-system
+      sectionName: apipassthrough
 postgresql:
   enabled: true
   persistence:

@@ -42,3 +42,7 @@ Nuances worth knowing:
 Per tenant: `TLSRoute` (SNI `{tenant}.api.{domain}`) + `ReferenceGrant` on the
 API gateway, `status.apiServerUrl` published on the Tenant CR, and the served
 kubeconfig pointing at the public URL. Nothing manual per tenant.
+
+**The host cluster itself must be prepared once** (Gateway API implementation
+with TLSRoute support, the shared passthrough Gateway, DNS) — step-by-step in
+[host-cluster.md](host-cluster.md).

@@ -41,6 +41,7 @@ this codebase.)
 ├── examples/                  # values profiles: kind demo, GKE test, production
 ├── docs/
 │   ├── contracts.md           # inter-component contract (read before touching any component)
+│   ├── host-cluster.md        # host prep for tenant exposure (Gateway API, DNS)
 │   └── prerequisites.md       # what you need: demo tier vs production tier
 ├── .github/workflows/         # ci (per-component), build (images → ghcr), release (CLI), chart mirror
 ├── .goreleaser.yaml           # CLI release: binaries, checksums, Homebrew tap
