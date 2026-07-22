@@ -43,7 +43,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - id: push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.component }}
           platforms: linux/amd64,linux/arm64
