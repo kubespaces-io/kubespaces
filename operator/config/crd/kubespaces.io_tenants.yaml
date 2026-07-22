@@ -23,6 +23,9 @@ spec:
     - jsonPath: .status.phase
       name: Phase
       type: string
+    - jsonPath: .status.apiServerUrl
+      name: API
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -103,6 +106,11 @@ spec:
           status:
             description: TenantStatus defines the observed state of a Tenant.
             properties:
+              apiServerUrl:
+                description: |-
+                  APIServerURL is the public endpoint of the tenant's API server, set
+                  when the operator exposes it through the platform Gateway.
+                type: string
               conditions:
                 description: Conditions represent the latest available observations
                   of the tenant state.

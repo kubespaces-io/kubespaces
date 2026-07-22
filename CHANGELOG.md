@@ -7,6 +7,15 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Tenant API exposure** (#15): when configured with a shared Gateway
+  (`operator.tenantApi.*` chart values), the operator creates a per-tenant
+  SNI-passthrough `TLSRoute` + `ReferenceGrant`, adds the public hostname to
+  the vCluster cert SANs, points the exported kubeconfig at
+  `https://<tenant>.api.<domain>:443`, and reports it in
+  `status.apiServerUrl`. Routes carry external-dns annotations; a wildcard
+  `*.api.<domain>` record works without external-dns.
+
 ## [0.2.0] — 2026-07-22
 
 ### Changed

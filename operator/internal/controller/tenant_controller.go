@@ -43,6 +43,9 @@ type TenantReconciler struct {
 	// Provisioner performs the actual vCluster install/uninstall. It is an
 	// interface so tests can substitute a fake.
 	Provisioner provisioner.Provisioner
+	// Networking configures public exposure of tenant API servers via a
+	// shared Gateway; zero value disables exposure.
+	Networking NetworkingConfig
 }
 
 // RBAC for the Tenant CR itself.
@@ -61,6 +64,7 @@ type TenantReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=statefulsets;deployments;replicasets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings;clusterroles;clusterrolebindings,verbs=get;list;watch;create;update;patch;delete;bind;escalate
 // +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tlsroutes;referencegrants,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;watch;create;update;patch;delete
 
@@ -103,10 +107,22 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if err := r.ensureLimitRange(ctx, tenant, namespaceName); err != nil {
 		return r.fail(ctx, tenant, "QuotaFailed", fmt.Errorf("ensuring limit range: %w", err))
 	}
+	if r.Networking.Enabled() {
+		if err := r.ensureTenantNetworking(ctx, tenant, namespaceName); err != nil {
+			return r.fail(ctx, tenant, "NetworkingFailed", err)
+		}
+	}
 
 	provisionReq, err := buildProvisionRequest(tenant, namespaceName)
 	if err != nil {
 		return r.fail(ctx, tenant, "InvalidSpec", err)
+	}
+	if r.Networking.Enabled() {
+		// The vCluster cert must cover the public hostname and the exported
+		// kubeconfig must point at it (ported from the pre-OSS tenant chart:
+		// proxy.extraSANs + exportKubeConfig.server).
+		provisionReq.PublicAPIHost = r.Networking.HostFor(tenant)
+		provisionReq.PublicAPIURL = r.Networking.URLFor(tenant)
 	}
 	if err := r.Provisioner.Install(ctx, provisionReq); err != nil {
 		return r.fail(ctx, tenant, "ProvisioningFailed", fmt.Errorf("installing vCluster: %w", err))
@@ -134,6 +150,10 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		Name: tenant.KubeconfigSecretName(),
 		Key:  kubespacesv1alpha1.KubeconfigSecretKey,
 	}
+	tenant.Status.APIServerURL = ""
+	if r.Networking.Enabled() {
+		tenant.Status.APIServerURL = r.Networking.URLFor(tenant)
+	}
 	setReadyCondition(tenant, metav1.ConditionTrue, "Provisioned", "vCluster is ready")
 	if err := r.updateStatus(ctx, tenant); err != nil {
 		return ctrl.Result{}, err
@@ -160,6 +180,12 @@ func (r *TenantReconciler) reconcileDelete(ctx context.Context, tenant *kubespac
 
 	if err := r.Provisioner.Uninstall(ctx, tenant.Name, namespaceName); err != nil {
 		return ctrl.Result{}, fmt.Errorf("uninstalling vCluster release %q: %w", tenant.Name, err)
+	}
+
+	if r.Networking.Enabled() {
+		if err := r.deleteTenantNetworking(ctx, tenant); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	namespace := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}

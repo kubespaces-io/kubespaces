@@ -18,6 +18,13 @@ type Request struct {
 	// ValuesOverrides are raw chart values merged on top of the generated
 	// values (overrides win).
 	ValuesOverrides map[string]any
+	// PublicAPIHost, when set, is added to the vCluster proxy certificate
+	// SANs so the public endpoint presents a valid cert.
+	PublicAPIHost string
+	// PublicAPIURL, when set, becomes the server URL in the exported
+	// kubeconfig Secret, so downloaded kubeconfigs point at the public
+	// endpoint instead of the in-cluster Service.
+	PublicAPIURL string
 }
 
 // Provisioner installs, removes and inspects vCluster releases.

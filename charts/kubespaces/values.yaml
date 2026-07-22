@@ -127,6 +127,19 @@ operator:
   # mirror, pinned version baked into the operator release).
   vclusterChartRef: ""      # e.g. oci://ghcr.io/kubespaces-io/charts/vcluster
   vclusterChartVersion: ""  # e.g. 0.35.2
+  # Tenant API exposure: the operator creates a per-tenant TLSRoute (SNI
+  # passthrough) + ReferenceGrant on this Gateway and exposes each tenant's
+  # API server at <tenant>.api.<domain>. Requires a Gateway with a TLS
+  # passthrough listener and DNS (*.api.<domain> wildcard, or external-dns —
+  # the operator annotates routes for it). All three of gateway.name,
+  # gateway.namespace and domain must be set to enable.
+  tenantApi:
+    domain: ""              # e.g. kubespaces.example.com
+    gateway:
+      name: ""              # e.g. kubespaces-api
+      namespace: ""         # e.g. kubespaces-system
+      sectionName: ""       # optional TLS passthrough listener name
+    externalDnsTarget: ""   # optional external-dns target override (on-prem IP)
 
 # ---------------------------------------------------------------------------
 # Gateway API: expose the portal (and /api, /auth) as an HTTPRoute attached to

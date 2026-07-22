@@ -125,6 +125,11 @@ type TenantStatus struct {
 	// +optional
 	KubeconfigSecretRef *SecretKeyRef `json:"kubeconfigSecretRef,omitempty"`
 
+	// APIServerURL is the public endpoint of the tenant's API server, set
+	// when the operator exposes it through the platform Gateway.
+	// +optional
+	APIServerURL string `json:"apiServerUrl,omitempty"`
+
 	// Conditions represent the latest available observations of the tenant state.
 	// +optional
 	// +listType=map
@@ -137,6 +142,7 @@ type TenantStatus struct {
 // +kubebuilder:resource:scope=Cluster,shortName=ten
 // +kubebuilder:printcolumn:name="Owner",type=string,JSONPath=`.spec.owner`
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="API",type=string,JSONPath=`.status.apiServerUrl`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // Tenant is a KubeSpaces tenant: a namespace, a resource quota and a virtual

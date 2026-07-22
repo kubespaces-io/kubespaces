@@ -22,7 +22,9 @@ spec:
           image: {{ include "kubespaces.image" (dict "ctx" . "image" .Values.operator.image) }}
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           args: ["--leader-elect"]
-          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion }}
+          {{- $ta := .Values.operator.tenantApi | default dict }}
+          {{- $taGw := $ta.gateway | default dict }}
+          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion $ta.domain }}
           env:
             {{- with .Values.operator.vclusterChartRef }}
             - name: VCLUSTER_CHART_REF
@@ -30,6 +32,26 @@ spec:
             {{- end }}
             {{- with .Values.operator.vclusterChartVersion }}
             - name: VCLUSTER_CHART_VERSION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $ta.domain }}
+            - name: KUBESPACES_API_DOMAIN
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $taGw.name }}
+            - name: KUBESPACES_GATEWAY_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $taGw.namespace }}
+            - name: KUBESPACES_GATEWAY_NAMESPACE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $taGw.sectionName }}
+            - name: KUBESPACES_GATEWAY_SECTION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $ta.externalDnsTarget }}
+            - name: KUBESPACES_EXTERNAL_DNS_TARGET
               value: {{ . | quote }}
             {{- end }}
           {{- end }}

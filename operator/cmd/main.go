@@ -13,6 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	kubespacesv1alpha1 "github.com/kubespaces-io/kubespaces/operator/api/v1alpha1"
 	"github.com/kubespaces-io/kubespaces/operator/internal/controller"
@@ -27,6 +29,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kubespacesv1alpha1.AddToScheme(scheme))
+	// Gateway API types for tenant API exposure (TLSRoute, ReferenceGrant).
+	utilruntime.Must(gatewayv1alpha2.Install(scheme))
+	utilruntime.Must(gatewayv1beta1.Install(scheme))
 }
 
 func main() {
@@ -54,10 +59,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	networking := controller.NetworkingConfigFromEnv()
+	if networking.Enabled() {
+		setupLog.Info("tenant API exposure enabled",
+			"gateway", networking.GatewayNamespace+"/"+networking.GatewayName,
+			"domain", networking.APIDomain)
+	} else {
+		setupLog.Info("tenant API exposure disabled (set KUBESPACES_GATEWAY_NAMESPACE, KUBESPACES_GATEWAY_NAME and KUBESPACES_API_DOMAIN to enable)")
+	}
+
 	if err := (&controller.TenantReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Provisioner: provisioner.NewHelmProvisioner(mgr.GetConfig()),
+		Networking:  networking,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Tenant")
 		os.Exit(1)

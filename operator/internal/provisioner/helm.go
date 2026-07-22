@@ -203,24 +203,39 @@ func (p *HelmProvisioner) locateChart(opts *action.ChartPathOptions) (*chart.Cha
 	return ch, nil
 }
 
-// buildValues merges the generated base values (Kubernetes version) with the
-// user-supplied overrides; overrides win.
+// buildValues merges the generated base values (Kubernetes version, public
+// endpoint) with the user-supplied overrides; overrides win.
 func buildValues(req Request) map[string]any {
 	base := map[string]any{}
+
+	controlPlane := map[string]any{}
 	if req.KubernetesVersion != "" {
 		// vCluster >= 0.20 values schema: controlPlane.distro.k8s.image.tag.
-		base = map[string]any{
-			"controlPlane": map[string]any{
-				"distro": map[string]any{
-					"k8s": map[string]any{
-						"image": map[string]any{
-							"tag": req.KubernetesVersion,
-						},
-					},
+		controlPlane["distro"] = map[string]any{
+			"k8s": map[string]any{
+				"image": map[string]any{
+					"tag": req.KubernetesVersion,
 				},
 			},
 		}
 	}
+	if req.PublicAPIHost != "" {
+		// The proxy cert must cover the public hostname (SNI passthrough
+		// keeps TLS end-to-end, so the vCluster's own cert is what clients
+		// verify).
+		controlPlane["proxy"] = map[string]any{
+			"extraSANs": []any{req.PublicAPIHost},
+		}
+	}
+	if len(controlPlane) > 0 {
+		base["controlPlane"] = controlPlane
+	}
+	if req.PublicAPIURL != "" {
+		base["exportKubeConfig"] = map[string]any{
+			"server": req.PublicAPIURL,
+		}
+	}
+
 	if len(req.ValuesOverrides) == 0 {
 		return base
 	}
