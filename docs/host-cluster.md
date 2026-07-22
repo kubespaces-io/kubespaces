@@ -186,6 +186,12 @@ spec:
     - backendRefs: [{name: web, port: 80}]
 ```
 
+The virtual `default` namespace is pre-labeled for route sync. To expose
+apps from *other* namespaces inside the virtual cluster, label them the same
+way (`kubectl label ns <ns> kubespaces.io/tenant=<tenant>` — inside the
+vCluster; this only satisfies the syncer's pre-check, it grants nothing on
+the host).
+
 **Isolation is structural**: the synced route lands in the tenant's host
 namespace, and the only listener that admits routes from that namespace is
 the tenant's own — whose hostname is `*.<tenant>.apps.<domain>`. A route

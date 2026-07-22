@@ -266,6 +266,20 @@ func buildValues(req Request) map[string]any {
 					},
 				},
 			}
+			// The syncer evaluates the projected Gateway's allowedRoutes
+			// selector against *virtual* namespace labels, so label the
+			// default namespace inside the vCluster with the tenant label.
+			// (Envoy enforces the real boundary against host namespaces —
+			// virtual labels only satisfy the syncer's pre-check.)
+			base["experimental"] = map[string]any{
+				"deploy": map[string]any{
+					"vcluster": map[string]any{
+						"manifests": fmt.Sprintf(
+							"apiVersion: v1\nkind: Namespace\nmetadata:\n  name: default\n  labels:\n    kubespaces.io/tenant: %s\n",
+							req.ReleaseName),
+					},
+				},
+			}
 		}
 		base["sync"] = sync
 	}
