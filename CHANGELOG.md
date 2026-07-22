@@ -7,6 +7,8 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-22
+
 ### Changed
 - **Breaking**: the CLI is renamed from `spacectl` to `kubespaces` — binary,
   Homebrew formula (`kubespaces-io/tap/kubespaces`), release archive names,
@@ -59,6 +61,7 @@ First public release. 🎉
 - **vCluster supply chain**: chart pinned (0.35.2) and installed from the
   KubeSpaces OCI mirror `ghcr.io/kubespaces-io/charts/vcluster`
 
-[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.2.0
 [0.1.1]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.0
