@@ -16,9 +16,11 @@ docs before picking something else.
 
 ## 1. Gateway API implementation (with TLSRoute)
 
-`TLSRoute` lives in Gateway API's **experimental channel** — a standard
-channel CRD install does *not* include it. Envoy Gateway bundles the CRDs it
-needs (TLSRoute included), which makes this a one-liner:
+`TLSRoute` is GA (`v1`, Standard channel) since **Gateway API v1.5**
+(February 2026); on older Gateway API installs it only exists in the
+**experimental channel** as `v1alpha2` — a pre-1.5 standard channel CRD
+install does *not* include it. Envoy Gateway bundles the CRDs it needs
+(TLSRoute included), which makes this a one-liner:
 
 ```bash
 helm install eg oci://docker.io/envoyproxy/gateway-helm \
