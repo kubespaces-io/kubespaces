@@ -7,6 +7,8 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-23
+
 ### Added
 - **Tenant app exposure** (#16): with `operator.tenantApps.*` configured,
   the operator adds a per-tenant HTTPS listener to the shared apps Gateway
@@ -24,6 +26,20 @@ All notable changes to KubeSpaces are documented here. The format follows
   `https://<tenant>.api.<domain>:443`, and reports it in
   `status.apiServerUrl`. Routes carry external-dns annotations; a wildcard
   `*.api.<domain>` record works without external-dns.
+- **Documentation site** at [docs.kubespaces.io](https://docs.kubespaces.io)
+  (#19): MkDocs Material, built from `docs/` and deployed by CI — getting
+  started, concepts, guides, and reference.
+- **Local reachable tenants on kind**: `examples/host/kind/` and a guide walk
+  the full Tier-2 networking path on a laptop with no domain — nip.io wildcard
+  DNS plus kind port mappings and pinned Envoy NodePorts give real,
+  TLS-verified tenant API endpoints and app URLs.
+
+### Fixed
+- **Chart installs the `Tenant` CRD** (#24): `operator.installCRDs` was a
+  no-op — the chart shipped no CRD, so a clean `helm install` left the cluster
+  unable to create tenants. The CRD is now rendered from the chart (synced from
+  the operator source of truth) and carries `helm.sh/resource-policy: keep`, so
+  `helm uninstall` never cascade-deletes tenants.
 
 ## [0.2.0] — 2026-07-22
 
