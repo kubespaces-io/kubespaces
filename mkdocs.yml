@@ -53,6 +53,7 @@ nav:
       - Quickstart: getting-started/quickstart.md
       - Installation: getting-started/installation.md
       - Your first tenant: getting-started/first-tenant.md
+      - Local reachable tenants (kind): getting-started/local-kind.md
   - Concepts:
       - Architecture: concepts/architecture.md
       - Tenant lifecycle: concepts/tenants.md

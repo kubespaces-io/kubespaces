@@ -1,0 +1,38 @@
+# KubeSpaces chart values for local reachable tenants on kind.
+# Layers the operator networking onto the all-in-one demo defaults.
+#
+#   helm install kubespaces charts/kubespaces -n kubespaces --create-namespace \
+#     -f examples/host/kind/values.yaml
+postgresql:
+  enabled: true
+  persistence:
+    enabled: false            # ephemeral for a throwaway cluster
+
+keycloak:
+  enabled: true
+
+ingress:
+  enabled: false
+
+operator:
+  enabled: true
+  # Released operator images (<= 0.2.0) predate the tenant-networking feature;
+  # until the next release, build and side-load the image:
+  #   docker build -t ghcr.io/kubespaces-io/operator:dev-kind operator
+  #   kind load docker-image ghcr.io/kubespaces-io/operator:dev-kind --name kubespaces
+  image:
+    repository: ghcr.io/kubespaces-io/operator
+    tag: dev-kind
+    pullPolicy: Never         # use the side-loaded image, never pull
+  tenantApi:
+    domain: 127.0.0.1.nip.io  # <tenant>.api.127.0.0.1.nip.io  -> 127.0.0.1:443
+    gateway:
+      name: kubespaces-api
+      namespace: kubespaces-system
+      sectionName: apipassthrough
+  tenantApps:
+    domain: 127.0.0.1.nip.io  # *.<tenant>.apps.127.0.0.1.nip.io -> 127.0.0.1:8443
+    gateway:
+      name: kubespaces-apps
+      namespace: kubespaces-system
+    clusterIssuer: selfsigned

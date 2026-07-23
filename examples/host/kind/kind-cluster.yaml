@@ -1,0 +1,33 @@
+# kind cluster for local KubeSpaces testing WITH reachable tenants.
+#
+# The operator bakes the public port into each served kubeconfig
+# (https://<tenant>.api.<domain>:443), so the API gateway must answer on the
+# host's real :443. These port mappings wire kind's node ports to the Envoy
+# services (node ports are pinned in host.yaml):
+#
+#   host 127.0.0.1:443  -> node 30443 -> API gateway  (TLS passthrough)
+#   host 127.0.0.1:8443 -> node 30444 -> apps gateway (HTTPS terminate)
+#   host 127.0.0.1:80   -> node 30080 -> apps gateway (HTTP base listener)
+#
+# Combined with nip.io (any host under *.127.0.0.1.nip.io resolves to
+# 127.0.0.1) this gives real, TLS-verified tenant endpoints with no DNS setup.
+#
+#   kind create cluster --config kind-cluster.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: kubespaces
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30443
+        hostPort: 443
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 30444
+        hostPort: 8443
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 30080
+        hostPort: 80
+        listenAddress: "127.0.0.1"
+        protocol: TCP
