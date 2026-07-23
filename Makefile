@@ -3,11 +3,18 @@ RELEASE      := kubespaces
 NAMESPACE    := kubespaces
 KIND_CLUSTER := kubespaces-dev
 
-.PHONY: lint template install uninstall kind-up kind-down kind-install crds
+.PHONY: lint template install uninstall kind-up kind-down kind-install crds sync-crds
 
-lint:
+lint: sync-crds
 	helm lint $(CHART)
 	helm lint $(CHART) -f examples/values-production.yaml
+
+# Sync the operator-generated CRD into the chart. The operator config
+# (operator/config/crd) is the single source of truth; the chart ships a copy
+# under files/ that templates/operator/crd.yaml renders. Run after
+# `make -C operator manifests`.
+sync-crds:
+	cp operator/config/crd/kubespaces.io_tenants.yaml $(CHART)/files/crd-tenants.yaml
 
 template:
 	helm template $(RELEASE) $(CHART) --namespace $(NAMESPACE)

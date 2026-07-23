@@ -1,0 +1,19 @@
+{{- /*
+  Tenant CRD. The manifest under files/crd-tenants.yaml is synced verbatim from
+  the operator source of truth (operator/config/crd) via `make sync-crds` — do
+  not edit it by hand. Installed when the operator is enabled; set
+  operator.installCRDs=false when the CRD is managed out-of-band (e.g. GitOps).
+
+  A helm.sh/resource-policy: keep annotation is injected so `helm uninstall`
+  never deletes the CRD — that would cascade-delete every Tenant (and, via the
+  finalizer, every vCluster) in the cluster.
+*/ -}}
+{{- if and .Values.operator.enabled .Values.operator.installCRDs }}
+{{- $crd := .Files.Get "files/crd-tenants.yaml" | fromYaml }}
+{{- $meta := $crd.metadata }}
+{{- $ann := $meta.annotations | default dict }}
+{{- $_ := set $ann "helm.sh/resource-policy" "keep" }}
+{{- $_ := set $meta "annotations" $ann }}
+---
+{{ toYaml $crd }}
+{{- end }}

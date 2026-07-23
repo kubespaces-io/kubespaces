@@ -122,6 +122,10 @@ operator:
     repository: ghcr.io/kubespaces-io/operator
     tag: ""
     pullPolicy: IfNotPresent
+  # Install the Tenant CRD with the chart (rendered from files/crd-tenants.yaml,
+  # synced from operator/config/crd). It carries helm.sh/resource-policy: keep,
+  # so it survives `helm uninstall` rather than cascade-deleting every tenant.
+  # Set false when the CRD is managed out-of-band (e.g. GitOps / kubectl apply).
   installCRDs: true
   # vCluster chart source. Empty = operator defaults (the KubeSpaces OCI
   # mirror, pinned version baked into the operator release).

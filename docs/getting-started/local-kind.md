@@ -26,8 +26,8 @@ Everything below lives in
 
 - Docker, [kind](https://kind.sigs.k8s.io/), `kubectl`, `helm`
 - Ports `80`, `443` and `8443` free on `127.0.0.1`
-- This repository checked out (you build the operator image locally, and apply
-  the CRD and example manifests from it)
+- This repository checked out (you build the operator image locally and apply
+  the example manifests from it)
 
 ## 1. Create the cluster
 
@@ -70,11 +70,10 @@ kind load docker-image ghcr.io/kubespaces-io/operator:dev-kind --name kubespaces
 
 ## 4. Install KubeSpaces
 
-The chart does not yet ship the `Tenant` CRD, so apply it first, then install
-with the kind values (operator networking pointed at nip.io):
+Install with the kind values (operator networking pointed at nip.io). The chart
+installs the `Tenant` CRD for you (`operator.installCRDs`, on by default):
 
 ```bash
-kubectl apply -f operator/config/crd/kubespaces.io_tenants.yaml
 helm install kubespaces charts/kubespaces -n kubespaces --create-namespace \
   -f examples/host/kind/values.yaml
 kubectl -n kubespaces rollout status deploy/kubespaces-operator --timeout=180s
