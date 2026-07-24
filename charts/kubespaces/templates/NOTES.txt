@@ -26,6 +26,26 @@ Keycloak admin credentials:
 
   user:     {{ .Values.keycloak.adminUser }}
   password: kubectl -n {{ .Release.Namespace }} get secret {{ default (printf "%s-keycloak" (include "kubespaces.fullname" .)) .Values.keycloak.existingSecret }} -o jsonpath='{.data.admin-password}' | base64 -d
+
+Create a portal user in the "{{ .Values.keycloak.realm }}" realm from the
+Keycloak admin console (the bootstrap realm ships no users).
+{{- end }}
+{{- if and .Values.keycloak.enabled (not .Values.oidc.issuerUrl) (not .Values.ingress.enabled) }}
+
+Signing in: the OIDC issuer must be reachable from your BROWSER, not just the
+cluster. The default built-in issuer is an in-cluster Service URL, so a plain
+port-forward reaches the portal but browser sign-in won't complete. For an
+evaluation, also forward Keycloak and set a browser-reachable issuer:
+
+  kubectl -n {{ .Release.Namespace }} port-forward --address 0.0.0.0 svc/{{ include "kubespaces.fullname" . }}-keycloak 8081:{{ .Values.keycloak.service.port }}
+  helm upgrade {{ .Release.Name }} <chart> --reuse-values \
+    --set oidc.issuerUrl=http://<HOST_IP>:8081/auth/realms/{{ .Values.keycloak.realm }} \
+    --set frontend.publicUrl=http://localhost:8080
+
+where <HOST_IP> is reachable from both your browser and the cluster pods (the
+node/host IP; on kind with Docker Desktop, your machine's LAN or Tailscale IP).
+With an ingress or Gateway that fronts /auth, set oidc.issuerUrl to that public
+URL instead — no extra port-forward needed.
 {{- end }}
 
 Next steps: create your first tenant from the portal, or with the kubespaces CLI:

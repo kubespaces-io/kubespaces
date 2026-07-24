@@ -1,4 +1,24 @@
 {{- if .Values.frontend.enabled }}
+{{- if not .Values.frontend.existingSecret }}
+# Auth.js (next-auth) session-encryption secret. Generate-once: preserved
+# across upgrades via the lookup pattern; override with frontend.authSecret or
+# bring your own via frontend.existingSecret (key "auth-secret").
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "kubespaces.fullname" . }}-frontend
+  labels:
+    {{- include "kubespaces.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+type: Opaque
+data:
+  {{- if .Values.frontend.authSecret }}
+  auth-secret: {{ .Values.frontend.authSecret | b64enc }}
+  {{- else }}
+  auth-secret: {{ include "kubespaces.generatedPassword" (dict "ctx" . "secretName" (printf "%s-frontend" (include "kubespaces.fullname" .)) "key" "auth-secret") }}
+  {{- end }}
+---
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,11 +43,32 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.frontend.containerPort }}
-          # Frontend is expected to reach the API via same-origin /api (ingress)
-          # or a runtime-injected config. Contract TBD with the frontend refactor.
           env:
+            # Server-side proxy target: the in-cluster API. This is fetched by
+            # the Next.js route handler from within the pod, so it must be an
+            # absolute in-cluster URL (not the browser-facing /api path).
             - name: KUBESPACES_API_URL
-              value: "/api"
+              value: http://{{ include "kubespaces.fullname" . }}-api:{{ .Values.api.service.port }}
+            # Auth.js session-encryption secret.
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-frontend" (include "kubespaces.fullname" .)) .Values.frontend.existingSecret }}
+                  key: auth-secret
+            # Keycloak OIDC provider — the same issuer the API validates tokens
+            # against. For browser sign-in to complete, this must be reachable
+            # from the user's browser (a public URL when exposed via ingress /
+            # gateway, or oidc.issuerUrl for an external IdP). See values.yaml.
+            - name: AUTH_KEYCLOAK_ISSUER
+              value: {{ include "kubespaces.oidc.issuerUrl" . | quote }}
+            - name: AUTH_KEYCLOAK_ID
+              value: {{ .Values.oidc.clientId | quote }}
+            {{- with .Values.frontend.publicUrl }}
+            # Canonical browser-facing base URL, used for OAuth callback URLs.
+            # When empty, Auth.js infers it from the request (trustHost).
+            - name: AUTH_URL
+              value: {{ . | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /

@@ -27,6 +27,16 @@ api:
 frontend:
   # Set false for a headless / operator-only install (no self-service portal).
   enabled: true
+  # Auth.js (next-auth) session-encryption secret. Leave empty to auto-generate
+  # a Secret on first install (preserved across upgrades). Or set existingSecret
+  # (key "auth-secret") to bring your own.
+  authSecret: ""
+  existingSecret: ""
+  # Canonical browser-facing base URL of the portal, e.g.
+  # https://kubespaces.example.com — used for OAuth redirect callbacks. Leave
+  # empty to let Auth.js infer it from the request host (works behind a single
+  # ingress/gateway that fronts the portal).
+  publicUrl: ""
   image:
     repository: ghcr.io/kubespaces-io/frontend
     tag: ""            # defaults to .Chart.AppVersion

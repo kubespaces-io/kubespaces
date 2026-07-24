@@ -7,6 +7,24 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- **Portal login works from `helm install`** — no manual patching. The chart
+  now wires the frontend's Auth.js environment: an auto-generated `AUTH_SECRET`
+  (persisted across upgrades, overridable via `frontend.authSecret` /
+  `frontend.existingSecret`), `AUTH_KEYCLOAK_ISSUER` (the same issuer the API
+  validates against), and `AUTH_KEYCLOAK_ID`. Previously the frontend shipped
+  with none of these, so next-auth failed to initialize.
+- **Frontend proxy target corrected**: `KUBESPACES_API_URL` was `/api`, which
+  the server-side Next.js route handler can't fetch. It now points at the
+  in-cluster API Service (`http://<release>-api:<port>`).
+- **Footer shows the real version**: the frontend footer was hardcoded to
+  `v0.1`. It now reads `APP_VERSION`, baked into the image at build time from
+  the release tag (goreleaser/metadata-action), and falls back to `dev`.
+
+### Added
+- `frontend.publicUrl` value — canonical browser-facing base URL for OAuth
+  callbacks (sets `AUTH_URL`); left empty, Auth.js infers it from the request.
+
 ## [0.8.0] — 2026-07-24
 
 ### Added
