@@ -14,7 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	kubespacesv1alpha1 "github.com/kubespaces-io/kubespaces/operator/api/v1alpha1"
@@ -143,7 +142,7 @@ func (r *TenantReconciler) ensureReferenceGrant(ctx context.Context, tenant *kub
 func (r *TenantReconciler) ensureTLSRoute(ctx context.Context, tenant *kubespacesv1alpha1.Tenant, namespaceName string) error {
 	host := r.Networking.HostFor(tenant)
 
-	route := &gatewayv1alpha2.TLSRoute{
+	route := &gatewayv1.TLSRoute{
 		ObjectMeta: metav1.ObjectMeta{Name: tlsRouteName(tenant), Namespace: r.Networking.GatewayNamespace},
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, route, func() error {
@@ -170,12 +169,12 @@ func (r *TenantReconciler) ensureTLSRoute(ctx context.Context, tenant *kubespace
 			parentRef.SectionName = ptrTo(gatewayv1.SectionName(r.Networking.GatewaySection))
 		}
 
-		route.Spec = gatewayv1alpha2.TLSRouteSpec{
+		route.Spec = gatewayv1.TLSRouteSpec{
 			CommonRouteSpec: gatewayv1.CommonRouteSpec{
 				ParentRefs: []gatewayv1.ParentReference{parentRef},
 			},
 			Hostnames: []gatewayv1.Hostname{gatewayv1.Hostname(host)},
-			Rules: []gatewayv1alpha2.TLSRouteRule{{
+			Rules: []gatewayv1.TLSRouteRule{{
 				BackendRefs: []gatewayv1.BackendRef{{
 					BackendObjectReference: gatewayv1.BackendObjectReference{
 						// vCluster's proxy Service is named after the release
@@ -196,7 +195,7 @@ func (r *TenantReconciler) ensureTLSRoute(ctx context.Context, tenant *kubespace
 // lives outside the tenant namespace, so namespace teardown cannot collect it
 // (and cross-namespace owner references are not allowed).
 func (r *TenantReconciler) deleteTenantNetworking(ctx context.Context, tenant *kubespacesv1alpha1.Tenant) error {
-	route := &gatewayv1alpha2.TLSRoute{
+	route := &gatewayv1.TLSRoute{
 		ObjectMeta: metav1.ObjectMeta{Name: tlsRouteName(tenant), Namespace: r.Networking.GatewayNamespace},
 	}
 	if err := r.Delete(ctx, route, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !apierrors.IsNotFound(err) {

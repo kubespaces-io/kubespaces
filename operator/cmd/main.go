@@ -14,7 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	kubespacesv1alpha1 "github.com/kubespaces-io/kubespaces/operator/api/v1alpha1"
@@ -30,10 +29,10 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kubespacesv1alpha1.AddToScheme(scheme))
-	// Gateway API types for tenant exposure (TLSRoute, ReferenceGrant,
-	// Gateway listeners).
+	// Gateway API types for tenant exposure. TLSRoute and Gateway listeners
+	// come from apis/v1 (Gateway API 1.5+, where TLSRoute graduated to the
+	// Standard channel); ReferenceGrant is still served under v1beta1.
 	utilruntime.Must(gatewayv1.Install(scheme))
-	utilruntime.Must(gatewayv1alpha2.Install(scheme))
 	utilruntime.Must(gatewayv1beta1.Install(scheme))
 }
 

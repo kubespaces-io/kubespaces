@@ -144,7 +144,7 @@ func (r *TenantReconciler) ensureAppsListener(ctx context.Context, tenant *kubes
 		Hostname: ptrTo(gatewayv1.Hostname(r.Apps.WildcardFor(tenant))),
 		Port:     appsListenerPort,
 		Protocol: gatewayv1.HTTPSProtocolType,
-		TLS: &gatewayv1.GatewayTLSConfig{
+		TLS: &gatewayv1.ListenerTLSConfig{
 			Mode: ptrTo(gatewayv1.TLSModeTerminate),
 			CertificateRefs: []gatewayv1.SecretObjectReference{{
 				Name: gatewayv1.ObjectName(tenantAppsCertName(tenant)),

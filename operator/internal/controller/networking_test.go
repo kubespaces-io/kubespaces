@@ -9,7 +9,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	kubespacesv1alpha1 "github.com/kubespaces-io/kubespaces/operator/api/v1alpha1"
@@ -55,7 +55,7 @@ func TestReconcileNetworkingCreatesRouteAndGrant(t *testing.T) {
 	reconcile(t, r, tenant.Name, 1)
 
 	// Assert: TLSRoute in the gateway namespace, wired to gateway and backend.
-	route := &gatewayv1alpha2.TLSRoute{}
+	route := &gatewayv1.TLSRoute{}
 	routeKey := types.NamespacedName{Name: "tenant-api-net-tenant", Namespace: "kubespaces-system"}
 	if err := c.Get(context.Background(), routeKey, route); err != nil {
 		t.Fatalf("getting TLSRoute: %v", err)
@@ -133,7 +133,7 @@ func TestReconcileDeleteRemovesTLSRoute(t *testing.T) {
 		now := metav1.Now()
 		tn.DeletionTimestamp = &now
 	})
-	route := &gatewayv1alpha2.TLSRoute{
+	route := &gatewayv1.TLSRoute{
 		ObjectMeta: metav1.ObjectMeta{Name: "tenant-api-gone-tenant", Namespace: "kubespaces-system"},
 	}
 	prov := &fakeProvisioner{}
@@ -144,7 +144,7 @@ func TestReconcileDeleteRemovesTLSRoute(t *testing.T) {
 	reconcile(t, r, tenant.Name, 1)
 
 	// Assert
-	err := c.Get(context.Background(), types.NamespacedName{Name: "tenant-api-gone-tenant", Namespace: "kubespaces-system"}, &gatewayv1alpha2.TLSRoute{})
+	err := c.Get(context.Background(), types.NamespacedName{Name: "tenant-api-gone-tenant", Namespace: "kubespaces-system"}, &gatewayv1.TLSRoute{})
 	if !apierrors.IsNotFound(err) {
 		t.Errorf("expected TLSRoute deleted, got err=%v", err)
 	}

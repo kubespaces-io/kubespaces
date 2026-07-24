@@ -18,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	kubespacesv1alpha1 "github.com/kubespaces-io/kubespaces/operator/api/v1alpha1"
@@ -64,9 +63,6 @@ func newTestScheme(t *testing.T) *runtime.Scheme {
 	}
 	if err := gatewayv1.Install(scheme); err != nil {
 		t.Fatalf("adding gateway v1 scheme: %v", err)
-	}
-	if err := gatewayv1alpha2.Install(scheme); err != nil {
-		t.Fatalf("adding gateway v1alpha2 scheme: %v", err)
 	}
 	if err := gatewayv1beta1.Install(scheme); err != nil {
 		t.Fatalf("adding gateway v1beta1 scheme: %v", err)

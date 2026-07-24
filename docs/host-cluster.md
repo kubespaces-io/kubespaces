@@ -17,10 +17,20 @@ docs before picking something else.
 ## 1. Gateway API implementation (with TLSRoute)
 
 `TLSRoute` is GA (`v1`, Standard channel) since **Gateway API v1.5**
-(February 2026); on older Gateway API installs it only exists in the
-**experimental channel** as `v1alpha2` — a pre-1.5 standard channel CRD
-install does *not* include it. Envoy Gateway bundles the CRDs it needs
-(TLSRoute included), which makes this a one-liner:
+(February 2026). The operator creates TLSRoutes using the `v1` API
+(`gateway.networking.k8s.io/v1`), so **Gateway API >= 1.5 CRDs are
+required** — a pre-1.5 install only served TLSRoute in the experimental
+channel as `v1alpha2`, which the operator no longer uses. (`v1alpha2` is
+still *served* by 1.5.x for backward compatibility but is removed in
+Gateway API 1.6.)
+
+> **Kubernetes >= 1.31** is also required: the TLSRoute `v1` CRD ships CEL
+> validation rules (`x-kubernetes-validations`), and CEL validation for
+> custom resources only became generally available in Kubernetes 1.31. On
+> older clusters the CRD applies but its validation rules are ignored.
+
+Envoy Gateway bundles the CRDs it needs (TLSRoute `v1` included), which
+makes this a one-liner:
 
 ```bash
 helm install eg oci://docker.io/envoyproxy/gateway-helm \
@@ -28,9 +38,12 @@ helm install eg oci://docker.io/envoyproxy/gateway-helm \
 ```
 
 If you bring another implementation, make sure
-`kubectl get crd tlsroutes.gateway.networking.k8s.io` succeeds afterwards; if
-it does not, install the experimental channel CRDs from
-[gateway-api releases](https://github.com/kubernetes-sigs/gateway-api/releases).
+`kubectl get crd tlsroutes.gateway.networking.k8s.io` succeeds afterwards
+and that it serves `v1`
+(`kubectl get crd tlsroutes.gateway.networking.k8s.io -o jsonpath='{.spec.versions[*].name}'`
+should list `v1`); if it does not, install the standard channel CRDs from
+[gateway-api releases](https://github.com/kubernetes-sigs/gateway-api/releases)
+(v1.5.0 or newer).
 
 ## 2. The tenant API Gateway (TLS passthrough)
 
