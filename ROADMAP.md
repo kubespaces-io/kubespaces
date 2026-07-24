@@ -23,8 +23,8 @@ The theme: no more port-forwarding.
       structural hostname isolation (`*.{tenant}.apps.{domain}`) (#16)
 - [ ] Chart `networking.*` values + documented Envoy Gateway / cert-manager /
       external-dns setup (see docs/prerequisites.md tiers)
-- [ ] **E2E acceptance test in CI**: kind → install → tenant Ready →
-      kubeconfig works, gating every release
+- [x] **E2E acceptance test in CI**: kind → install → tenant Ready →
+      kubeconfig works, gating every release (#18)
 - [x] Docs site at **docs.kubespaces.io** (MkDocs Material from `docs/`, #19)
 - [x] CLI naming: resolved — the CLI is now `kubespaces` (was `spacectl`,
       which collided with Spacelift's CLI; see #20)
