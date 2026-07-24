@@ -129,6 +129,46 @@ ingress:
   #   hosts: [kubespaces.example.com]
 
 # ---------------------------------------------------------------------------
+# Networking: shared home for the tenant-exposure domain and the two production
+# Gateways (Tier 2 — see docs/prerequisites.md and docs/guides/gateway-stack.md).
+#
+# These are the *documented*, top-level place to configure the gateway stack.
+# They feed the operator as DEFAULTS for the more granular operator.tenantApi.*
+# / operator.tenantApps.* values below: set them once here and both the API
+# (TLS passthrough, <tenant>.api.<domain>) and apps (TLS terminate,
+# <app>.<tenant>.apps.<domain>) paths are wired up.
+#
+# Backward compatible: everything here defaults to empty (Tier 1 / demo — no
+# public endpoints). If you set only the older operator.tenantApi.* /
+# operator.tenantApps.* keys, they still win and nothing changes. The Gateways
+# themselves are host infrastructure, NOT chart-managed (one per cluster):
+# see docs/host-cluster.md and examples/host/.
+# ---------------------------------------------------------------------------
+networking:
+  # Base domain you control. Tenants get <tenant>.api.<domain> (API server) and
+  # <app>.<tenant>.apps.<domain> (workloads). Used as the default for both
+  # operator.tenantApi.domain and operator.tenantApps.domain. Empty = Tier 1.
+  domain: ""                 # e.g. kubespaces.example.com
+  # Shared tenant API Gateway (TLS passthrough). Default for
+  # operator.tenantApi.gateway.*.
+  apiGateway:
+    name: ""                 # e.g. kubespaces-api
+    namespace: ""            # e.g. kubespaces-system
+    sectionName: ""          # optional TLS passthrough listener name (e.g. apipassthrough)
+  # Shared tenant apps Gateway (TLS terminate). Default for
+  # operator.tenantApps.gateway.*.
+  appsGateway:
+    name: ""                 # e.g. kubespaces-apps
+    namespace: ""            # e.g. kubespaces-system
+  # cert-manager ClusterIssuer for the per-tenant apps wildcard certs. Wildcard
+  # certs require DNS-01 in production; selfsigned works for evaluation. Default
+  # for operator.tenantApps.clusterIssuer.
+  clusterIssuer: ""          # e.g. letsencrypt-dns01
+  # Optional external-dns target override (e.g. the public IP of an on-prem
+  # gateway appliance). Default for operator.tenantApi.externalDnsTarget.
+  externalDnsTarget: ""
+
+# ---------------------------------------------------------------------------
 # Operator (future component): reconciles Tenant custom resources.
 # ---------------------------------------------------------------------------
 operator:
@@ -152,6 +192,11 @@ operator:
   # passthrough listener and DNS (*.api.<domain> wildcard, or external-dns —
   # the operator annotates routes for it). All three of gateway.name,
   # gateway.namespace and domain must be set to enable.
+  #
+  # Each field here defaults to the matching networking.* value above when left
+  # empty (domain -> networking.domain, gateway.* -> networking.apiGateway.*,
+  # externalDnsTarget -> networking.externalDnsTarget); set them here only to
+  # override the shared networking config. Both spellings are supported.
   tenantApi:
     domain: ""              # e.g. kubespaces.example.com
     gateway:
@@ -165,6 +210,11 @@ operator:
   # vCluster's native Gateway API HTTPRoute sync. Requires cert-manager and a
   # ClusterIssuer (DNS-01 for real certs; selfsigned works for evaluation).
   # All four fields must be set to enable.
+  #
+  # Each field here defaults to the matching networking.* value above when left
+  # empty (domain -> networking.domain, gateway.* -> networking.appsGateway.*,
+  # clusterIssuer -> networking.clusterIssuer); set them here only to override
+  # the shared networking config. Both spellings are supported.
   tenantApps:
     domain: ""              # e.g. kubespaces.example.com
     gateway:

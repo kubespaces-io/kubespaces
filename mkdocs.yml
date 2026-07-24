@@ -60,6 +60,7 @@ nav:
       - Networking: concepts/networking.md
   - Guides:
       - Host cluster preparation: host-cluster.md
+      - Production gateway stack: guides/gateway-stack.md
       - Using the CLI: guides/cli.md
       - Exposing apps: guides/expose-apps.md
   - Reference:

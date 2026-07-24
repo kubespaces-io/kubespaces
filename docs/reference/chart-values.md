@@ -53,7 +53,30 @@ gatewayApi:               # or: ride an existing Gateway as an HTTPRoute
   gateway: {name: kubespaces-apps, namespace: kubespaces-system, sectionName: ""}
 ```
 
-## Tenant exposure (operator)
+## Tenant exposure (networking)
+
+The top-level `networking.*` block is the recommended, DRY home for the shared
+domain and the two production Gateways — set the domain once and both the API
+and apps paths are wired up ([Production gateway stack](../guides/gateway-stack.md)):
+
+```yaml
+networking:
+  domain: ""                # <tenant>.api.<domain> and <app>.<tenant>.apps.<domain>
+  apiGateway:               # TLS passthrough
+    name: ""                # e.g. kubespaces-api
+    namespace: ""           # e.g. kubespaces-system
+    sectionName: ""         # e.g. apipassthrough
+  appsGateway:              # TLS terminate
+    name: ""                # e.g. kubespaces-apps
+    namespace: ""
+  clusterIssuer: ""         # cert-manager ClusterIssuer for per-tenant wildcards
+  externalDnsTarget: ""     # optional external-dns override (on-prem IP)
+```
+
+The older per-path `operator.tenantApi.*` / `operator.tenantApps.*` keys are
+still supported and **take precedence** over `networking.*` when set — the two
+spellings are interchangeable and backward compatible. Use the granular keys to
+override a single field (e.g. a different domain for apps than for the API):
 
 ```yaml
 operator:
@@ -62,27 +85,27 @@ operator:
   vclusterChartVersion: ""  # e.g. 0.35.2
 
   tenantApi:                # <tenant>.api.<domain> — TLS passthrough
-    domain: ""
+    domain: ""              # default: networking.domain
     gateway:
-      name: ""              # e.g. kubespaces-api
-      namespace: ""         # e.g. kubespaces-system
-      sectionName: ""       # e.g. apipassthrough
-    externalDnsTarget: ""   # optional external-dns override (on-prem IP)
+      name: ""              # default: networking.apiGateway.name
+      namespace: ""         # default: networking.apiGateway.namespace
+      sectionName: ""       # default: networking.apiGateway.sectionName
+    externalDnsTarget: ""   # default: networking.externalDnsTarget
 
   tenantApps:               # <app>.<tenant>.apps.<domain> — TLS terminate
-    domain: ""
+    domain: ""              # default: networking.domain
     gateway:
-      name: ""              # e.g. kubespaces-apps
-      namespace: ""
-    clusterIssuer: ""       # cert-manager ClusterIssuer for per-tenant wildcards
+      name: ""              # default: networking.appsGateway.name
+      namespace: ""         # default: networking.appsGateway.namespace
+    clusterIssuer: ""       # default: networking.clusterIssuer
 ```
 
 Semantics:
 
-- **Empty = off.** With no `tenantApi`/`tenantApps` config the operator
-  provisions tenants without any public endpoints (the evaluation tier) —
-  identical behavior to pre-exposure releases.
-- `tenantApi` requires domain + gateway name + namespace; `tenantApps`
+- **Empty = off.** With no `networking`/`tenantApi`/`tenantApps` config the
+  operator provisions tenants without any public endpoints (the evaluation
+  tier) — identical behavior to pre-exposure releases.
+- The API path requires domain + API gateway name + namespace; the apps path
   additionally requires the ClusterIssuer.
 - These values become `KUBESPACES_*` environment variables on the operator
   Deployment — useful to know when debugging (`kubectl describe deploy`).

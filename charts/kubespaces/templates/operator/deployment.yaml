@@ -22,11 +22,30 @@ spec:
           image: {{ include "kubespaces.image" (dict "ctx" . "image" .Values.operator.image) }}
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           args: ["--leader-elect"]
+          {{- /*
+            Networking config resolution. The top-level .Values.networking.*
+            block is the documented home for the shared domain + gateways; the
+            older .Values.operator.tenantApi.* / tenantApps.* keys still work and
+            take precedence when set (backward compatible). Each value below is
+            "old key if set, else networking default" via `default <fallback> <value>`.
+          */}}
+          {{- $net := .Values.networking | default dict }}
+          {{- $netApiGw := $net.apiGateway | default dict }}
+          {{- $netAppsGw := $net.appsGateway | default dict }}
           {{- $ta := .Values.operator.tenantApi | default dict }}
           {{- $taGw := $ta.gateway | default dict }}
           {{- $tapps := .Values.operator.tenantApps | default dict }}
           {{- $tappsGw := $tapps.gateway | default dict }}
-          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion $ta.domain $tapps.domain }}
+          {{- $apiDomain := default $net.domain $ta.domain }}
+          {{- $gwName := default $netApiGw.name $taGw.name }}
+          {{- $gwNamespace := default $netApiGw.namespace $taGw.namespace }}
+          {{- $gwSection := default $netApiGw.sectionName $taGw.sectionName }}
+          {{- $extDnsTarget := default $net.externalDnsTarget $ta.externalDnsTarget }}
+          {{- $appsDomain := default $net.domain $tapps.domain }}
+          {{- $appsGwName := default $netAppsGw.name $tappsGw.name }}
+          {{- $appsGwNamespace := default $netAppsGw.namespace $tappsGw.namespace }}
+          {{- $appsClusterIssuer := default $net.clusterIssuer $tapps.clusterIssuer }}
+          {{- if or .Values.operator.vclusterChartRef .Values.operator.vclusterChartVersion $apiDomain $appsDomain }}
           env:
             {{- with .Values.operator.vclusterChartRef }}
             - name: VCLUSTER_CHART_REF
@@ -36,39 +55,39 @@ spec:
             - name: VCLUSTER_CHART_VERSION
               value: {{ . | quote }}
             {{- end }}
-            {{- with $ta.domain }}
+            {{- with $apiDomain }}
             - name: KUBESPACES_API_DOMAIN
               value: {{ . | quote }}
             {{- end }}
-            {{- with $taGw.name }}
+            {{- with $gwName }}
             - name: KUBESPACES_GATEWAY_NAME
               value: {{ . | quote }}
             {{- end }}
-            {{- with $taGw.namespace }}
+            {{- with $gwNamespace }}
             - name: KUBESPACES_GATEWAY_NAMESPACE
               value: {{ . | quote }}
             {{- end }}
-            {{- with $taGw.sectionName }}
+            {{- with $gwSection }}
             - name: KUBESPACES_GATEWAY_SECTION
               value: {{ . | quote }}
             {{- end }}
-            {{- with $ta.externalDnsTarget }}
+            {{- with $extDnsTarget }}
             - name: KUBESPACES_EXTERNAL_DNS_TARGET
               value: {{ . | quote }}
             {{- end }}
-            {{- with $tapps.domain }}
+            {{- with $appsDomain }}
             - name: KUBESPACES_APPS_DOMAIN
               value: {{ . | quote }}
             {{- end }}
-            {{- with $tappsGw.name }}
+            {{- with $appsGwName }}
             - name: KUBESPACES_APPS_GATEWAY_NAME
               value: {{ . | quote }}
             {{- end }}
-            {{- with $tappsGw.namespace }}
+            {{- with $appsGwNamespace }}
             - name: KUBESPACES_APPS_GATEWAY_NAMESPACE
               value: {{ . | quote }}
             {{- end }}
-            {{- with $tapps.clusterIssuer }}
+            {{- with $appsClusterIssuer }}
             - name: KUBESPACES_APPS_CLUSTER_ISSUER
               value: {{ . | quote }}
             {{- end }}
