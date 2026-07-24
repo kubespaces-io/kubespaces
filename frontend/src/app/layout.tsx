@@ -37,7 +37,9 @@ export default function RootLayout({
         <footer className="border-t border-rule">
           <div className="mx-auto flex max-w-4xl items-baseline justify-between px-6 py-5 text-xs text-ink-faint">
             <span>KubeSpaces — open control plane for virtual Kubernetes tenants</span>
-            <span className="tabular-nums">v0.1</span>
+            <span className="tabular-nums">
+              {process.env.APP_VERSION ? `v${process.env.APP_VERSION}` : "dev"}
+            </span>
           </div>
         </footer>
       </body>

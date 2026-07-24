@@ -48,6 +48,10 @@ jobs:
           context: ${{ matrix.component }}
           platforms: linux/amd64,linux/arm64
           push: true
+          # APP_VERSION is consumed by the frontend image (footer); other
+          # components declare no such ARG and harmlessly ignore it.
+          build-args: |
+            APP_VERSION=${{ steps.meta.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.component }}

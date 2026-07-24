@@ -15,8 +15,12 @@ RUN npm run build
 # --- runtime ------------------------------------------------------------
 FROM node:22-alpine AS runtime
 WORKDIR /app
+# Release version, injected by CI (docker/metadata-action). Read at runtime by
+# the footer (a server component). Defaults to "dev" for local builds.
+ARG APP_VERSION=dev
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
+    APP_VERSION=${APP_VERSION} \
     HOSTNAME=0.0.0.0 \
     PORT=3000
 
