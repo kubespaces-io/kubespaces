@@ -25,7 +25,7 @@ jobs:
       TENANT: e2e
       TENANT_NS: kubespaces-tenant-e2e
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build operator image
         run: docker build -t "$OPERATOR_IMAGE" operator
