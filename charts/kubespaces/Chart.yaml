@@ -4,8 +4,8 @@ description: >-
   KubeSpaces — the open control plane for virtual Kubernetes tenants.
   Self-service, isolated clusters-in-clusters with a portal, SSO and CLI.
 type: application
-version: 0.3.0
-appVersion: "0.3.0"
+version: 0.8.0
+appVersion: "0.8.0"
 kubeVersion: ">=1.27.0-0"
 home: https://kubespaces.io
 sources:

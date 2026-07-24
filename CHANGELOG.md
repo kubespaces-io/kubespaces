@@ -7,6 +7,25 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-07-24
+
+### Added
+- **Headless / operator-only installs**: new `api.enabled` and
+  `frontend.enabled` chart values (both default `true`). Set them to `false`
+  to run the operator on its own — it reconciles `Tenant` CRs into vClusters
+  with no portal API, frontend, database, or OIDC dependency. The
+  operator-only render is a clean four documents (operator Deployment, CRD,
+  ServiceAccount, ClusterRoleBinding), for bring-your-own-control-plane
+  deployments.
+- **Release-gating E2E test** (#18): every push and PR now builds the
+  operator, provisions a real `Tenant` on a kind cluster, verifies the served
+  kubeconfig answers, and asserts clean teardown — a hermetic, offline gate
+  with no external image or IdP dependencies. Full tenant lifecycle in ~3
+  minutes.
+- **AI policy** ([AI.md](AI.md)): how the project uses AI and how AI-assisted
+  contributions are accepted, modeled on the Linux Foundation Generative AI
+  Policy and adapted to KubeSpaces' Apache-2.0 inbound=outbound model.
+
 ## [0.3.0] — 2026-07-23
 
 ### Added
@@ -95,7 +114,9 @@ First public release. 🎉
 - **vCluster supply chain**: chart pinned (0.35.2) and installed from the
   KubeSpaces OCI mirror `ghcr.io/kubespaces-io/charts/vcluster`
 
-[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.2.0
-[0.1.1]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.1
+[Unreleased]: https://github.com/kubespaces-io/kubespaces/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/kubespaces-io/kubespaces/compare/v0.3.0...v0.8.0
+[0.3.0]: https://github.com/kubespaces-io/kubespaces/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/kubespaces-io/kubespaces/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/kubespaces-io/kubespaces/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kubespaces-io/kubespaces/releases/tag/v0.1.0
