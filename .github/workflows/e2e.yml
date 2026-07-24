@@ -97,24 +97,28 @@ jobs:
           pf_pid=$!
           trap 'kill $pf_pid 2>/dev/null || true' EXIT
 
+          # Liveness check: the served kubeconfig must authenticate against the
+          # vCluster API and get a real answer. We assert on core namespaces
+          # (always present) rather than nodes — vCluster syncs nodes on-demand,
+          # so a workload-free tenant legitimately reports zero nodes.
           ok=""
           for i in $(seq 1 30); do
             if kubectl --kubeconfig /tmp/tenant.kubeconfig \
                  --server https://127.0.0.1:8443 --insecure-skip-tls-verify \
-                 get nodes 2>/dev/null | grep -q Ready; then
+                 get namespace kube-system -o name 2>/dev/null | grep -q kube-system; then
               ok=1
               break
             fi
             sleep 4
           done
           if [ -z "$ok" ]; then
-            echo "::error::vCluster did not answer Ready through its kubeconfig"
+            echo "::error::vCluster did not answer through its served kubeconfig"
             cat /tmp/pf.log || true
             exit 1
           fi
-          echo "vCluster reachable and node Ready ✅"
+          echo "vCluster API reachable through served kubeconfig ✅"
           kubectl --kubeconfig /tmp/tenant.kubeconfig \
-            --server https://127.0.0.1:8443 --insecure-skip-tls-verify get nodes
+            --server https://127.0.0.1:8443 --insecure-skip-tls-verify get namespaces
 
       - name: Delete Tenant and verify cleanup
         run: |
