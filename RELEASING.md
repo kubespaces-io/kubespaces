@@ -19,20 +19,35 @@ Helm chart at the same version.
 ## Changelog
 
 [CHANGELOG.md](CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com):
-an `Unreleased` section accumulates entries per PR (the conventional-commit
-type decides the section), and release notes are generated from conventional
-commits by goreleaser, grouped Breaking / Features / Fixes / Other.
+an `Unreleased` section accumulates rich entries per PR (the conventional-commit
+type decides the section). At release time, `make changelog VERSION=X.Y.Z`
+(via [`scripts/release-changelog.sh`](scripts/release-changelog.sh)) promotes
+`Unreleased` into a dated `[X.Y.Z]` section and rebuilds the compare-link
+footer — no hand-editing. If `Unreleased` happens to be empty, the script
+synthesizes entries from conventional commits since the previous tag
+(feat→Added, fix→Fixed, perf/refactor→Changed, `!`/BREAKING→Breaking;
+docs/chore/ci/test/build excluded).
+
+Separately, goreleaser generates the **GitHub Release notes** from conventional
+commits, grouped Breaking / Features / Fixes / Other. The two are complementary:
+CHANGELOG.md is the curated human history; the Release notes are the raw commit
+digest for that tag.
 
 ## Cutting a release (maintainers)
 
 1. Ensure `main` is green and, if the vCluster pin changed, the mirror ran
    first (`mirror-vcluster-chart` workflow, then bump `DefaultChartVersion`).
-2. Move `Unreleased` entries in CHANGELOG.md under the new version + date;
-   commit `chore: release vX.Y.Z`.
+2. Prepare the release — promotes the changelog and bumps the chart in one
+   step (or run `make changelog` / `make chart-version` individually):
+   ```bash
+   make release-prep VERSION=X.Y.Z
+   git diff                       # review the generated changelog + chart bump
+   git commit -am "chore: release vX.Y.Z"
+   ```
 3. Tag and push:
    ```bash
    git tag vX.Y.Z -m "KubeSpaces X.Y.Z"
-   git push origin vX.Y.Z
+   git push origin main vX.Y.Z
    ```
 4. Automation takes over:
    - **release.yml** → goreleaser: darwin/linux/windows binaries, archives,
