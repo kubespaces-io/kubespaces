@@ -7,6 +7,14 @@ All notable changes to KubeSpaces are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Tenancy model (phase 1)**: `organizations → projects → tenants` with
+  members and roles, ported from the pre-open-source `login-api` and adapted
+  so Keycloak owns identity (users are a JIT-provisioned projection). Migration
+  `0002_tenancy.sql` and the `store` layer land the schema and repository;
+  API/RBAC and UI follow in later phases. See
+  [docs/design/tenancy.md](docs/design/tenancy.md).
+
 ## [0.8.0] — 2026-07-24
 
 ### Added
