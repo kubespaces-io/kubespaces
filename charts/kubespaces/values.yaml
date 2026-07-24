@@ -5,6 +5,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 api:
+  # Set false for a headless / operator-only install (the operator provisions
+  # tenants without the portal API — e.g. bring-your-own control-plane API).
+  enabled: true
   image:
     repository: ghcr.io/kubespaces-io/api
     tag: ""            # defaults to .Chart.AppVersion
@@ -22,6 +25,8 @@ api:
   extraEnv: []
 
 frontend:
+  # Set false for a headless / operator-only install (no self-service portal).
+  enabled: true
   image:
     repository: ghcr.io/kubespaces-io/frontend
     tag: ""            # defaults to .Chart.AppVersion

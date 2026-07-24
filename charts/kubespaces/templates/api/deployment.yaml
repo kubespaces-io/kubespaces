@@ -1,3 +1,4 @@
+{{- if .Values.api.enabled }}
 # NOTE: the env-var contract below is provisional until the backend refactor
 # lands. Keep ALL app configuration named here, in one place.
 apiVersion: apps/v1
@@ -58,3 +59,4 @@ spec:
             initialDelaySeconds: 15
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
+{{- end }}

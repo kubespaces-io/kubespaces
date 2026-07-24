@@ -1,0 +1,130 @@
+name: E2E
+
+# Hermetic end-to-end acceptance gate: build the operator locally, load it into
+# a kind cluster, install the chart in operator-only mode (no ghcr images, no
+# Keycloak/Postgres), provision a real Tenant, and verify its vCluster answers
+# through the served kubeconfig. Nothing here touches the network beyond kind
+# itself, so the run is deterministic and self-contained.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  tenant-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OPERATOR_IMAGE: ghcr.io/kubespaces-io/operator:e2e
+      TENANT: e2e
+      TENANT_NS: kubespaces-tenant-e2e
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build operator image
+        run: docker build -t "$OPERATOR_IMAGE" operator
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: kubespaces-e2e
+
+      - name: Load operator image into kind
+        run: kind load docker-image "$OPERATOR_IMAGE" --name kubespaces-e2e
+
+      - uses: azure/setup-helm@v4
+
+      # Operator-only: the chart carries the CRD, the operator binds the
+      # provisioning RBAC. api/frontend/keycloak/postgresql are all off, so the
+      # install has zero external image dependencies.
+      - name: Install chart (operator-only)
+        run: |
+          helm install kubespaces charts/kubespaces \
+            --namespace kubespaces-system --create-namespace \
+            --set operator.enabled=true \
+            --set operator.image.repository=ghcr.io/kubespaces-io/operator \
+            --set operator.image.tag=e2e \
+            --set operator.image.pullPolicy=Never \
+            --set api.enabled=false \
+            --set frontend.enabled=false \
+            --set keycloak.enabled=false \
+            --set postgresql.enabled=false \
+            --wait --timeout 5m
+
+      - name: Create Tenant
+        run: |
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: kubespaces.io/v1alpha1
+          kind: Tenant
+          metadata:
+            name: e2e
+          spec:
+            displayName: E2E acceptance tenant
+            owner: ci@kubespaces.io
+            resources:
+              cpu: "2"
+              memory: 4Gi
+              storage: 10Gi
+          EOF
+
+      - name: Wait for Tenant to become Ready
+        run: |
+          kubectl wait tenant/"$TENANT" \
+            --for=jsonpath='{.status.phase}'=Ready \
+            --timeout=10m
+
+      - name: Verify vCluster answers through served kubeconfig
+        run: |
+          set -euo pipefail
+          # Extract the operator-served kubeconfig (secret vc-<tenant>, key config).
+          kubectl get secret "vc-${TENANT}" -n "$TENANT_NS" \
+            -o jsonpath='{.data.config}' | base64 -d > /tmp/tenant.kubeconfig
+
+          # Discover the vCluster API Service (the non-headless one exposing 443)
+          # and port-forward to it; we override --server so the served host/DNS is
+          # irrelevant to this check.
+          svc=$(kubectl get svc -n "$TENANT_NS" \
+            -o jsonpath='{range .items[?(@.spec.ports[0].port==443)]}{.metadata.name}{"\n"}{end}' \
+            | grep -v headless | head -n1)
+          echo "Port-forwarding svc/$svc in $TENANT_NS"
+          kubectl port-forward -n "$TENANT_NS" "svc/$svc" 8443:443 >/tmp/pf.log 2>&1 &
+          pf_pid=$!
+          trap 'kill $pf_pid 2>/dev/null || true' EXIT
+
+          ok=""
+          for i in $(seq 1 30); do
+            if kubectl --kubeconfig /tmp/tenant.kubeconfig \
+                 --server https://127.0.0.1:8443 --insecure-skip-tls-verify \
+                 get nodes 2>/dev/null | grep -q Ready; then
+              ok=1
+              break
+            fi
+            sleep 4
+          done
+          if [ -z "$ok" ]; then
+            echo "::error::vCluster did not answer Ready through its kubeconfig"
+            cat /tmp/pf.log || true
+            exit 1
+          fi
+          echo "vCluster reachable and node Ready ✅"
+          kubectl --kubeconfig /tmp/tenant.kubeconfig \
+            --server https://127.0.0.1:8443 --insecure-skip-tls-verify get nodes
+
+      - name: Delete Tenant and verify cleanup
+        run: |
+          kubectl delete tenant "$TENANT" --wait=true --timeout=5m
+          kubectl wait --for=delete "namespace/$TENANT_NS" --timeout=5m
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          echo "=== operator logs ==="
+          kubectl logs -n kubespaces-system -l app.kubernetes.io/component=operator --tail=200 || true
+          echo "=== tenant ==="
+          kubectl get tenant "$TENANT" -o yaml || true
+          echo "=== tenant namespace ==="
+          kubectl get all -n "$TENANT_NS" || true
+          echo "=== events ==="
+          kubectl get events -n "$TENANT_NS" --sort-by=.lastTimestamp || true

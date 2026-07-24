@@ -1,3 +1,4 @@
+{{- if .Values.api.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -53,3 +54,4 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "kubespaces.fullname" . }}-api
     namespace: {{ .Release.Namespace }}
+{{- end }}
