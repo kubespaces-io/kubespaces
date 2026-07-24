@@ -6,10 +6,14 @@ name: E2E
 # through the served kubeconfig. Nothing here touches the network beyond kind
 # itself, so the run is deterministic and self-contained.
 
+# Docs-only changes don't affect the runtime behavior this gate exercises, so
+# they skip the (expensive) kind provisioning.
 on:
   pull_request:
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE", "NOTICE"]
   push:
     branches: [main]
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE", "NOTICE"]
   workflow_dispatch:
 
 jobs:

@@ -39,8 +39,9 @@ This document is short on ceremony and explicit about expectations.
 
 This project was bootstrapped with heavy AI assistance, and we're not going
 to pretend otherwise — AI tooling is a normal part of the workflow here.
-That said, the following policy applies to every contribution, however it
-was produced:
+The full policy — how we use AI and how we accept AI-assisted contributions,
+modeled on the Linux Foundation Generative AI Policy — lives in [AI.md](AI.md).
+The short version, which applies to every contribution however it was produced:
 
 1. **You are the author.** Submitting a change means you understand every
    line of it, have run it, and can defend it in review. "The model wrote
