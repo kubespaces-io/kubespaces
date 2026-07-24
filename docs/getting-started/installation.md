@@ -5,19 +5,29 @@ that matter; the full value list is in [Chart values](../reference/chart-values.
 
 ## The chart
 
+The chart is published as a versioned, signed OCI artifact on every release:
+
 ```bash
-git clone https://github.com/kubespaces-io/kubespaces
-cd kubespaces
-helm install kubespaces charts/kubespaces \
+helm install kubespaces oci://ghcr.io/kubespaces-io/charts/kubespaces \
   --namespace kubespaces --create-namespace \
   --set operator.enabled=true
 ```
 
-!!! note "OCI chart publishing"
-    Publishing the chart as a versioned OCI artifact
-    (`oci://ghcr.io/kubespaces-io/charts/kubespaces`) is tracked in
-    [#21](https://github.com/kubespaces-io/kubespaces/issues/21) — until
-    then, install from a repo checkout.
+Pin a specific release with `--version X.Y.Z` (recommended for production).
+Verify the chart signature before installing — see
+[Verifying what you run](#verifying-what-you-run).
+
+!!! note "From a source checkout"
+    To install from a clone (e.g. a development branch), point Helm at the
+    local path instead:
+
+    ```bash
+    git clone https://github.com/kubespaces-io/kubespaces
+    cd kubespaces
+    helm install kubespaces charts/kubespaces \
+      --namespace kubespaces --create-namespace \
+      --set operator.enabled=true
+    ```
 
 ## What the default install contains
 
@@ -69,6 +79,15 @@ GitHub OIDC identity). Verify before trusting:
 
 ```bash
 cosign verify ghcr.io/kubespaces-io/operator:0.2.0 \
+  --certificate-identity-regexp \
+    '^https://github.com/kubespaces-io/kubespaces/.github/workflows/build.yml@refs/tags/v.*$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The umbrella chart is signed the same way — verify it before installing:
+
+```bash
+cosign verify ghcr.io/kubespaces-io/charts/kubespaces:0.8.0 \
   --certificate-identity-regexp \
     '^https://github.com/kubespaces-io/kubespaces/.github/workflows/build.yml@refs/tags/v.*$' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com

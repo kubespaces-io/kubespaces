@@ -43,6 +43,11 @@ cosign verify-blob \
 cosign verify ghcr.io/kubespaces-io/api:<tag> \
   --certificate-identity-regexp 'github.com/kubespaces-io/kubespaces' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+# umbrella Helm chart (published as a signed OCI artifact)
+cosign verify ghcr.io/kubespaces-io/charts/kubespaces:<tag> \
+  --certificate-identity-regexp 'github.com/kubespaces-io/kubespaces' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
 ## Roadmap to 1.0 (holistic hardening)

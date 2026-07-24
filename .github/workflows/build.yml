@@ -65,3 +65,46 @@ jobs:
         run: |
           cosign sign --yes \
             "${REGISTRY}/${{ github.repository_owner }}/${{ matrix.component }}@${DIGEST}"
+
+  # Publish the umbrella chart as a signed OCI artifact, but only on version
+  # tags — the quickstart `helm install kubespaces oci://ghcr.io/kubespaces-io/charts/kubespaces`
+  # resolves against this. Kept in build.yml (not a separate workflow) to reuse
+  # the tag trigger, `packages: write` + `id-token: write` permissions, and the
+  # same cosign keyless flow the image jobs use. The chart version tracks the
+  # tag via `--version`/`--app-version` so no pre-commit chart bump is required.
+  chart:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/setup-helm@v4
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Login to ghcr
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            helm registry login "${REGISTRY}" -u "${{ github.actor }}" --password-stdin
+
+      - name: Package and push chart
+        id: push
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"   # v0.8.0 -> 0.8.0
+          helm package charts/kubespaces --version "${TAG}" --app-version "${TAG}"
+          # helm push prints the pushed digest to stderr; capture it so cosign
+          # signs the exact manifest we published (digest, not the mutable tag).
+          helm push "kubespaces-${TAG}.tgz" "oci://${REGISTRY}/${OWNER}/charts" \
+            2>&1 | tee push.log
+          DIGEST="$(awk '/Digest:/ {print $2}' push.log)"
+          test -n "${DIGEST}" || { echo "could not parse pushed chart digest"; exit 1; }
+          echo "digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
+
+      - name: Sign chart (cosign keyless)
+        env:
+          OWNER: ${{ github.repository_owner }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes \
+            "${REGISTRY}/${OWNER}/charts/kubespaces@${DIGEST}"

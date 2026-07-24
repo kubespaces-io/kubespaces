@@ -4,8 +4,11 @@
 
 KubeSpaces follows [Semantic Versioning 2.0.0](https://semver.org) with one
 version line for the entire monorepo: a single `vX.Y.Z` tag releases the
-`api`/`operator`/`frontend` images, the `kubespaces` CLI binaries, and (soon) the
-Helm chart at the same version.
+`api`/`operator`/`frontend` images, the `kubespaces` CLI binaries, and the
+umbrella Helm chart at the same version. `make release-prep` bumps
+`Chart.yaml` to keep the source in sync, but the *published* chart version is
+set from the tag at package time (`helm package --version ${TAG#v}`), so the
+OCI artifact tracks the tag even if the committed `Chart.yaml` drifts.
 
 - **Pre-1.0 (`0.y.z`)**: minor bumps (`0.y`) may contain breaking changes —
   always called out in the changelog under **Breaking**. Patch bumps
@@ -55,10 +58,15 @@ digest for that tag.
      on the checksums, GitHub release with grouped notes, Homebrew formula
      push to `kubespaces-io/homebrew-tap`.
    - **build.yml** → multi-arch images to `ghcr.io/kubespaces-io/{api,operator,frontend}`
-     tagged `X.Y.Z`, `X.Y`, `sha-*`, signed with **cosign** (keyless).
+     tagged `X.Y.Z`, `X.Y`, `sha-*`, signed with **cosign** (keyless). The
+     `chart` job in the same workflow packages the umbrella chart at the tag
+     version and pushes it as a signed OCI artifact to
+     `oci://ghcr.io/kubespaces-io/charts/kubespaces`.
 5. Verify: `kubespaces version` from a fresh
-   `curl -fsSL https://kubespaces.io/install.sh | sh`, and
-   `cosign verify` per [docs/security.md](docs/security.md).
+   `curl -fsSL https://kubespaces.io/install.sh | sh`;
+   `helm install kubespaces oci://ghcr.io/kubespaces-io/charts/kubespaces --version X.Y.Z`
+   resolves; and `cosign verify` the images and the chart per
+   [docs/security.md](docs/security.md).
 
 ## Release integrity
 

@@ -62,9 +62,14 @@ binaries (goreleaser) and the `api`/`operator`/`frontend` images together.
 ## Quickstart
 
 ```bash
-helm install kubespaces charts/kubespaces \
+helm install kubespaces oci://ghcr.io/kubespaces-io/charts/kubespaces \
   --namespace kubespaces --create-namespace
 ```
+
+The chart is published as a signed OCI artifact on every release; pin a
+version with `--version X.Y.Z`. To install from a source checkout instead,
+point Helm at `charts/kubespaces`. Verify the chart signature with
+[`cosign`](docs/security.md).
 
 The default install is fully self-contained: API + frontend + PostgreSQL
 (official `postgres` image) + Keycloak (official image, dev mode, realm
