@@ -38,7 +38,7 @@ jobs:
       - name: Load operator image into kind
         run: kind load docker-image "$OPERATOR_IMAGE" --name kubespaces-e2e
 
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
 
       # Operator-only: the chart carries the CRD, the operator binds the
       # provisioning RBAC. api/frontend/keycloak/postgresql are all off, so the
